@@ -1,0 +1,9 @@
+diff a/app/src/renderer/views/header.vue b/app/src/renderer/views/header.vue	(rejected hunks)
+@@ -22,7 +22,6 @@
+                 <a href="#/tx/list"><i class="iconfont icon-zhuanzhang"></i>{{$t('nav.send')}}</a>
+               </li>
+               <li @click="clickNav('offLineSign')" :class="getActiveHeaderNav === 'offLineSign' ? 'activeBig' : ''">
+-                <a href="#/ost"><i class="iconfont">&#xe670;</i>离线签名交易</a>
+                 <a href="#/ost"><i class="iconfont">&#xe670;</i>离线签11名交易</a>
+               </li>
+               <li @click="clickNav('uniteAccount')" :class="getActiveHeaderNav === 'uniteAccount' ? 'activeBig' : ''">

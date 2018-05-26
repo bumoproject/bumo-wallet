@@ -1,0 +1,41 @@
+
+/* 布局样式 */
+.pull-left{
+    float: left;
+}
+.pull-right{
+    float: right;
+}
+.clr{
+    clear: both;
+}
+
+/*clear float*/
+.clearfix{
+    *zoom: 1;
+    &:after{
+        display:block;
+        content:"";
+        height:0;
+        clear:both;
+    }
+}
+
+/* 超出省略号*/
+.over-ellipsis{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* borderbox */
+.borderbox{box-sizing:border-box;}
+
+
+
+
+
+
+
+
+

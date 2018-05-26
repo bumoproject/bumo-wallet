@@ -1,0 +1,129 @@
+/* 离线签名模块下的卡片样式 */
+.ost-card-box {
+    width: 810px;
+    padding: 0 20px;
+    margin-bottom: 14px;
+    border: 1px solid #F8F8F8;
+    border-radius: 2px;
+}
+.ost-card-box-background {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+/* 卡片标题 */
+.ost-card-title {
+    position: relative;
+    width: 100%;
+    padding: 12px 0 13px 12px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #F8F8F8;
+}
+.ost-card-title-background {
+    margin: 0 20px;
+    width: initial;
+}
+/* 标题前的绿条 */
+.ost-card-title::before {
+    position: absolute;
+    left: 0;
+    content: '';
+    background: #00D080;
+    height: 14px;
+    width: 2px;
+}
+/* 详情格子 */
+.ost-card-item {
+    float: left;
+    width: 380px;
+    height:30px;
+    margin-bottom: 1px;
+}
+.ost-card-item .ost-card-item-name {
+    float: left;
+    width: 100px;
+    height: 30px;
+    font-size: 12px;
+    line-height: 30px;
+    text-align: center;
+    color: #666;
+    background: #F8F8F8;
+}
+.ost-card-item .ost-card-item-content {
+    float: left;
+    width: 500px;
+    height: 30px;
+    line-height: 30px;
+    padding-left: 12px;
+    font-size: 12px;
+    color: #333;
+}
+.ost-card-item-hash {
+    width: 780px;
+}
+.ost-card-item-hash .ost-card-item-content-hash {
+    width: 500px;
+}
+/* 共管账号 */
+.ost-card-item-many-members {
+    margin-top: 10px;
+}
+.ost-card-item-special {
+    display: flex;
+    width: 768px;
+    height: auto;
+    flex-direction: row;
+}
+.ost-card-item-special .ost-card-item-name-special {
+    width: 150px;
+    padding-right: 5px;
+    float: none;
+    height: initial;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+.ost-card-item-special .ost-card-item-content-special {
+    float: none;
+    flex: 1;
+    width: 587px;
+    min-height: 30px;
+    font-size: 12px;
+}
+/* 备注的格子 */
+.ost-card-item-remarks {
+    margin-top: 0;
+}
+.ost-card-item .ost-card-item-content-remarks {
+    float: none;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    height: initial;
+    word-wrap: break-word;
+    word-break: break-all;
+    min-height: 30px;
+    line-height: 1.5;
+}
+
+/* 离线签名里的按钮样式 */
+.ost-btn {
+    width: 470px;
+    height: 36px;
+    border-radius: 4px;
+    line-height: 36px;
+    font-size: 16px;
+    cursor: pointer;
+    background: #7fe8c0;
+    text-align: center;
+    color: #fff;
+}
+.clearfix{
+    *zoom: 1;
+}
+.clearfix:after{
+    display:block;
+    content:"";
+    height:0;
+    clear:both;
+}
