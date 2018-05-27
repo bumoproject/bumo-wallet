@@ -1,0 +1,11 @@
+app/node_modules/**
+wallets/**
+bumo.db
+node_modules**
+app/dist/**
+test/unit/coverage/**
+test/unit/*.js
+test/e2e/*.js
+app/src/renderer/assets/iconfont/**
+app/src/renderer/extend/**
+app/src/renderer/views/account/*

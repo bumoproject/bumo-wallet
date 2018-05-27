@@ -12,10 +12,10 @@ export default {
   api: {
     port: 80,
     browser: {
-      domain: 'http://browser.bumodev.io/'
+      domain: 'http://explorer.bumo.io/'
     },
     wallet: {
-      serverHost: 'walletser.bumotest.io'
+      serverHost: 'wallet-s.bumo.io'
     }
   },
   sdk: {
