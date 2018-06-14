@@ -167,7 +167,7 @@ export default {
     'noBlockSeq': '正在連接區塊鏈網絡...',
     'synchronizedBlock': '已同步區塊',
     'currentBlock': '當前區塊高度',
-    'nodeConnectionSize': '節點連接數'
+    'nodeConnectionSize': 'Peer的連接數'
   },
   'home': {
     'content': {

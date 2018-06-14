@@ -215,14 +215,18 @@ export default {
      * @param {obejct} params                         [必须]参数对象
      * @param {string} params.srcAddress              [必须]源账户地址
      * @param {string} params.destAddress             [必须]目标账户地址
-     * @param {string} params.feeLimit                     [必须]扣除费用
-     * @param {string} params.gasPrice                     [必须]扣除费用
+     * @param {string} params.feeLimit                [必须]扣除费用
+     * @param {string} params.gasPrice                [必须]扣除费用
      * @param {string} params.balanceInit             [必须]转移给账户的初始费用
      *
      * @param {string} params.accountNick             [可选]账户昵称(昵称+密码 or 私钥二选一)
      * @param {string} params.pwd                     [可选]账户密码(昵称+密码 or 私钥二选一)
      * @param {string} params.privateKey              [可选]源账户私钥(昵称+密码 or 私钥二选一)
      *
+     * @param {string} params.accountNickDest         [可选]账户昵称(昵称+密码 or 私钥二选一)
+     * @param {string} params.pwdDest                 [可选]账户密码(昵称+密码 or 私钥二选一)
+     * @param {string} params.privateKeyDest          [可选]源账户私钥(昵称+密码 or 私钥二选一)
+     * 
      * @param {string} params.contract                [可选]合约内容
      * @param {string} params.note                    [可选]备注
      * @param {string} params.seqOffset               [可选]区块偏移量，当前区块高度+偏移量=交易最大打包高度
@@ -245,6 +249,9 @@ export default {
                     'accountNick': 'string',
                     'pwd': 'string',
                     'privateKey': 'string',
+                    'accountNickDest': 'string',
+                    'pwdDest': 'string',
+                    'privateKeyDest': 'string',
                     'note': 'string',
                     'seqOffset': 'number',
                     'metadatas': 'array',
@@ -289,6 +296,31 @@ export default {
                         constUtil.ERRORS.ERR_PARAMS);
                 }
             }
+            if (!params.hasOwnProperty('privateKeyDest')
+                || params.privateKeyDest.length === 0) {
+                if (params.hasOwnProperty('accountNickDest')
+                    && params.hasOwnProperty('pwdDest')
+                    && params.accountNickDest.length > 0 && params.pwdDest.length > 0) {
+                    let result = await account.getAccountPrivKeyStr({
+                        'accountNick': params.accountNickDest,
+                        'pwd': params.pwdDest,
+                    });
+                    if (commonUtil.isSuccess(result)) {
+                        if (result.hasOwnProperty('data')
+                            && result.data.hasOwnProperty('privKeyStr')) {
+                            params.privateKeyDest = result.data.privKeyStr;
+                        } else {
+                            return commonUtil.packageError(
+                                constUtil.ERRORS.ERR_UNKNOWN);
+                        }
+                    } else {
+                        return result;
+                    }
+                } else {
+                    return commonUtil.packageError(
+                        constUtil.ERRORS.ERR_PARAMS);
+                }
+            }
             let result = await net.txCreateAccount(
                 params.srcAddress,
                 params.destAddress,
@@ -299,6 +331,7 @@ export default {
                 commonUtil.unitConvert(
                     params.balanceInit, constUtil.BUILDIN_UNIT_IN, true),
                 params.privateKey,
+                params.privateKeyDest,
                 params.metadatas,
                 params.weight,
                 params.threshold,
@@ -531,8 +564,8 @@ export default {
      * @param {string}    params.type              [必须]处理类型
      *                                  (fee:获取交易费用, blob:获取交易blob, deal:提交交易)
      * @param {string}    params.srcAddress        [必须]源账户地址
-     * @param {string}    params.feeLimit               [必须]交易手续费
-     * @param {string}    params.gasPrice               [必须]交易手续费
+     * @param {string}    params.feeLimit          [必须]交易手续费
+     * @param {string}    params.gasPrice          [必须]交易手续费
      * @param {string}    params.accountNick       [可选]源账户昵称(昵称+密码 or 私钥)
      * @param {string}    params.pwd               [可选]源账户密码(昵称+密码 or 私钥)
      * @param {string}    params.privateKey        [可选]源账户私钥(昵称+密码 or 私钥)
@@ -543,8 +576,7 @@ export default {
      *                                              (create:创建账号
      *                                              metadata:设置元数据
      *                                              paycoin:转移token
-     *                                              signers:修改权重
-     *                                              threshold:修改门限)
+     *                                              privilege:设置账户权限)
      * @param {object}    params.ops[].params      [必须]交易参数(和交易有关)
      *
      * 创建账号的交易参数
@@ -575,17 +607,15 @@ export default {
      * @param {string}       params.ops[].params.value          [可选]元数据值
      * @param {string}       params.ops[].params.version        [可选]元数据版本
      *
-     * 修改权重的交易参数
-     * @param {number}       params.ops[].params.weight             [可选]账户自身权重
-     * @param {array}        params.ops[].params.signers            [可选]权重列表
-     * @param {string}       params.ops[].params.signers[].address  [必须]账户地址
-     * @param {number}       params.ops[].params.signers[].weight   [必须]地址对应的权重
-     *
-     * 修改门限的交易参数
-     * @param {string}       params.ops[].params.tx             [可选]账号发起交易的门限
-     * @param {array}        params.ops[].params.thresholds     [可选]账号各个操作的门限
-     * @param {number}       params.ops[].params.thresholds[].type      [必须]操作类型
-     * @param {number}       params.ops[].params.thresholds[].threshold [必须]操作门限
+     * 设置账户权限
+     * @param {string}       params.ops[].params.masterWeight               [可选]账户自身权重
+     * @param {string}       params.ops[].params.txThreshold                [可选]账户发起交易的门限
+     * @param {array}        params.ops[].params.signers                    [可选]权重列表
+     * @param {string}       params.ops[].params.signers[].address          [必须]账户地址
+     * @param {number}       params.ops[].params.signers[].weight           [必须]地址对应的权重
+     * @param {array}        params.ops[].params.typeThresholds             [可选]门限列表
+     * @param {number}       params.ops[].params.typeThresholds[].type      [必须]交易类型
+     * @param {number}       params.ops[].params.typeThresholds[].threshold [必须]交易对应的门限
      *
      * @return {object}
      *
@@ -640,7 +670,6 @@ export default {
                             'contract': 'string',
                             'metadatas': 'object',
                             'weight': 'number',
-                            'threshold': 'object',
                         })) {
                             let signers = element.params.signers;
                             if (element.params.hasOwnProperty('signers')
@@ -660,10 +689,7 @@ export default {
                                     constUtil.BUILDIN_UNIT_IN, true),
                                 'metadatas': element.params.metadatas,
                                 'contract': element.params.contract,
-                                'weight': element.params.weight,
-                                'signers': signers,
-                                'threshold': element.params
-                                    .threshold}]);
+                                'weight': element.params.weight}]);
                         }
                         break;
                     case 'paycoin':
@@ -721,63 +747,53 @@ export default {
                                 p.push([constUtil.TX_TYPE.METADATA.TYPE, t]);
                             }
                         break;
-                    case 'signers':
+                    case 'privilege':
                         if (commonUtil.objectCheck(element.params, {}, {
-                            'weight': 'number',
-                            'signers': 'array'})) {
-                                let t = null;
-                                if (element.params.hasOwnProperty('weight')) {
-                                    t = {'weight': element.params.weight};
+                            'masterWeight': 'string',
+                            'signers': 'array',
+                            'txThreshold': 'string',
+                            'typeThresholds': 'array',
+                            'srcAddress': 'string'})) {
+                                let t = {};
+                                if (element.params.hasOwnProperty('masterWeight')) {
+                                    t.masterWeight = element.params.masterWeight;
+                                }
+                                if (element.params.hasOwnProperty('txThreshold')) {
+                                    t.txThreshold = element.params.txThreshold;
+                                }
+                                if (element.params.hasOwnProperty('srcAddress')) {
+                                    t.srcAddress = element.params.srcAddress;
                                 }
                                 if (element.params.hasOwnProperty('signers')
                                     && element.params.signers.length > 0) {
-                                    if (t === null) {
-                                        t = { };
-                                    }
-                                    t['signers'] = [];
+                                    t.signers = [];
                                     for (let i = 0; i < element.params.signers.length; i++) {
                                         if (commonUtil.objectCheck(element.params.signers[i], {
                                             'address': 'string',
                                             'weight': 'number'})) {
-                                                t['signers'].push({
+                                                t.signers.push({
                                                     'address': element.params.signers[i].address,
                                                     'weight': element.params.signers[i].weight});
                                             }
                                     }
                                 }
+                                if (element.params.hasOwnProperty('typeThresholds')
+                                    && element.params.typeThresholds.length > 0) {
+                                    t.typeThresholds = [];
+                                    for (let i = 0; i < element.params.typeThresholds.length; i++) {
+                                        if (commonUtil.objectCheck(element.params.typeThresholds[i], {
+                                            'type': 'number',
+                                            'threshold': 'number'})) {
+                                                t.typeThresholds.push({
+                                                    'type': element.params.typeThresholds[i].type,
+                                                    'threshold': element.params.typeThresholds[i].threshold});
+                                            }
+                                    }
+                                }
                                 if (t !== null) {
-                                    p.push([constUtil.TX_TYPE.SIGNER.TYPE, t]);
+                                    p.push([constUtil.TX_TYPE.PRIVILEGE.TYPE, t]);
                                 }
                             }
-                        break;
-                    case 'threshold':
-                    if (commonUtil.objectCheck(element.params, {}, {
-                        'tx': 'number',
-                        'thresholds': 'array'})) {
-                            let t = null;
-                            if (element.params.hasOwnProperty('tx')) {
-                                t = {'tx': element.params.tx};
-                            }
-                            if (element.params.hasOwnProperty('thresholds')
-                                && element.params.thresholds.length > 0) {
-                                if (t === null) {
-                                    t = { };
-                                }
-                                t['thresholds'] = [];
-                                for (let i = 0; i < element.params.thresholds.length; i++) {
-                                    if (commonUtil.objectCheck(element.params.thresholds[i], {
-                                        'type': 'number',
-                                        'threshold': 'number'})) {
-                                            t['thresholds'].push({
-                                                'type': element.params.thresholds[i].type,
-                                                'threshold': element.params.thresholds[i].threshold});
-                                        }
-                                }
-                            }
-                            if (t !== null) {
-                                p.push([constUtil.TX_TYPE.THRESHOLD.TYPE, t]);
-                            }
-                        }
                         break;
                     default: return;
                 }

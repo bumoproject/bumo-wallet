@@ -313,9 +313,9 @@ export default {
 .ivu-modal-body .tx-status{position: absolute;right: 50%;top: 0px}
 .tx-status i{font-size: 16px;}
 .show-tx-detail-wraper{padding-top: 5px;padding-bottom: 5px;}
-.show-tx-detail-wraper p{padding: 5px 0;}
-.show-tx-detail-wraper p label{width: 150px;display: inline-block;text-align: right;}
-.show-tx-detail-wraper span{padding-left: 15px;display: inline-block;}
+.show-tx-detail-wraper p{padding: 5px 0;display: flex;}
+.show-tx-detail-wraper p label{width: 150px;display: block;text-align: right;}
+.show-tx-detail-wraper span{padding-left: 15px;display: block;}
 .show-tx-detail-wraper span.address-mark{font-weight: 600;}
 .show-tx-detail-wraper b{padding-left: 15px;display: inline-block;}
 .icon-jindutiaochulizhong {color: #FF8024}

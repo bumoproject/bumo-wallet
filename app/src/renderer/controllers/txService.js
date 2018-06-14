@@ -244,7 +244,7 @@ export default {
     }
     return new Promise((resolve, reject) => {
       var gasPrice = null
-      baseService.getSendTokenGasPrice(opts.srcAddr, opts.destAddr, opts.sentAssetAmount, opts.note, opts.fee).then(respSendTokenGasPriceData => {
+      baseService.getSendTokenGasPrice(opts.srcAddr, opts.destAddr, opts.sentAssetAmount, opts.note, opts.fee, opts.signersCount).then(respSendTokenGasPriceData => {
         gasPrice = respSendTokenGasPriceData
         var reqData = {
           type: 'blob',

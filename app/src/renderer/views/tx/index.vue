@@ -374,9 +374,9 @@ frmitemh{height: 20px;}
 .txt-info{text-align: center;color: #999;padding-bottom: 5px;}
 .ivu-modal-footer{display: block;text-align: center;}
 .send-asset-confirm-wraper {background-color: #F8F8F8;margin-bottom: 12px;padding: 5px 0;}
-.send-asset-confirm-wraper p{padding: 3px 0;}
-.send-asset-confirm-wraper p label{text-align: right;width: 150px;display: inline-block;}
-.send-asset-confirm-wraper span{padding-left: 15px;}
+.send-asset-confirm-wraper p{padding: 3px 0;display: flex;}
+.send-asset-confirm-wraper p label{text-align: right;width: 150px;display: block;}
+.send-asset-confirm-wraper span{padding-left: 15px;display: block;}
 .send-asset-confirm-wraper b{padding-left: 15px;}
 .send-asset-confirm-wraper span.tx-note{margin-top: -18px;display: block;padding-left: 166px;padding-right: 5px; min-height: 18px; word-break: break-all;}
 .asset-send-amount .ivu-form-item-content{position: relative; padding-right:35px;}

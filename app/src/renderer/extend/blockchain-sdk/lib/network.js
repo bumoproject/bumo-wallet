@@ -108,11 +108,6 @@ commonUtil.eventInnerAdd(constUtil.EVENTS.WS_CLOSE, function() {
         clearInterval(TriggerSeq);
         TriggerSeq = null;
     }
-    
-    if (peerClosed === false) {
-        commonUtil.eventTrigger(constUtil.EVENTS.INFO, 'websocket: re-connect after closed');
-        connect();
-    }
 });
 
 // init this module event handler
@@ -276,7 +271,7 @@ export default {
         connect();
     },
     txCalcTxFee: async function(addressSrc, addressDst, amount, note, seqOffset) {
-        return await makeADeal('fee', addressSrc, '0', '', note, seqOffset, [
+        return await makeADeal('fee', addressSrc, '0', '0', [''], note, seqOffset, [
             [constUtil.TX_TYPE.PAYCOIN.TYPE, {
                 'dest': addressDst,
                 'amount': amount}]]);
@@ -284,30 +279,66 @@ export default {
     txPayCoin: async function(
         addressSrc, addressDst, amount, feeLimit, gasPrice, priv, note, seqOffset) {
             return await makeADeal(
-                'deal', addressSrc, feeLimit, gasPrice, priv, note, seqOffset, [
+                'deal', addressSrc, feeLimit, gasPrice, [priv], note, seqOffset, [
                     [
                         constUtil.TX_TYPE.PAYCOIN.TYPE, {
                             'dest': addressDst,
                             'amount': amount}]]);
     },
     txCreateAccount: async function(
-        addressSrc, addressDst, feeLimit, gasPrice, balanceInit, priv,
+        addressSrc, addressDst, feeLimit, gasPrice, balanceInit, priv, privDest,
         metadatas, weight, threshold, signers, contract, note, seqOffset) {
+            if (commonUtil.isObject(signers)) {
+                let keys = Object.keys(signers);
+                let arr = [];
+                for(let i = 0; i < keys.length; i++) {
+                    arr.push({
+                        'address': keys[i],
+                        'weight': signers[keys[i]],
+                    });
+                }
+                signers = arr;
+            }
+
+            let thresholdTx = 1;
+            let thresholdTypes = [];
+            {
+                let types = Object.keys(threshold);
+                let buildinTypes = Object.keys(transactionType);
+                for (let i = 0; i < types.length; i++) {
+                    if (buildinTypes.includes(types[i])) {
+                        thresholdTypes.push({
+                            'type': transactionType[types[i]],
+                            'threshold': threshold[types[i]],
+                        });
+                    } else if (types[i] === 'tx') {
+                        thresholdTx = threshold[types[i]]
+                    }
+                }
+            }
+            if (typeof privDest === 'string' && privDest.length > 0) {
+                priv = [priv, privDest];
+            } else {
+                priv = [priv];
+            }
             return await makeADeal(
                 'deal', addressSrc, feeLimit, gasPrice, priv, note, seqOffset, [
                     [constUtil.TX_TYPE.CREATE.TYPE, {
                         'dest': addressDst,
                         'balanceInit': balanceInit,
                         'metadatas': metadatas,
-                        'weight': weight,
+                        'contract': contract}],
+                    [constUtil.TX_TYPE.PRIVILEGE.TYPE, {
+                        'srcAddress': addressDst,
+                        'masterWeight': weight.toString(),
                         'signers': signers,
-                        'threshold': threshold,
-                        'contract': contract}]]);
+                        'txThreshold': thresholdTx.toString(),
+                        'typeThresholds': thresholdTypes}]]);
     },
     dealTransaction: async function(
         type, addressSrc, feeLimit, gasPrice, priv, note, seqOffset, ops) {
         return await makeADeal(
-            type, addressSrc, feeLimit, gasPrice, priv, note, seqOffset, ops);
+            type, addressSrc, feeLimit, gasPrice, [priv], note, seqOffset, ops);
     },
 
 /**
@@ -595,9 +626,8 @@ const transactionType = {
     'issue': constUtil.TX_TYPE.ISSUE.TYPE,
     'payment': constUtil.TX_TYPE.PAYMENT.TYPE,
     'metadata': constUtil.TX_TYPE.METADATA.TYPE,
-    'threshold': constUtil.TX_TYPE.THRESHOLD.TYPE,
-    'signer': constUtil.TX_TYPE.SIGNER.TYPE,
-    'paycoin': constUtil.TX_TYPE.PAYCOIN.TYPE};
+    'paycoin': constUtil.TX_TYPE.PAYCOIN.TYPE,
+    'privilege': constUtil.TX_TYPE.PRIVILEGE.TYPE};
 
 let defaultTxThreshold = 1;
 let defaultMasterWeight = 1;
@@ -641,31 +671,6 @@ function asmExeOpMetadata(key, value, version) {
 }
 
 /**
- * 组合SetThreshold的protobuf对象
- * @param {number} tx
- * @param {array} thresholds
- * @return {object}
- */
-function asmExeOpThreshold(tx, thresholds) {
-        let opST = new protoChain.OperationSetThreshold();
-        if (typeof tx === 'number') {
-            opST.setTxThreshold(tx);
-        }
-        if (commonUtil.isArray(thresholds)) {
-            thresholds.forEach((ele)=>{
-                let thre = new protoChain.OperationTypeThreshold();
-                thre.setType(ele.type);
-                thre.setThreshold(ele.threshold);
-                opST.addTypeThresholds(thre);
-            });
-        }
-        let op = new protoChain.Operation();
-        op.setType(protoChain.Operation.Type.SET_THRESHOLD);
-        op.setSetThreshold(opST);
-        return op;
-}
-
-/**
  * 组合Payment的protobuf对象
  * @param {string} dest
  * @param {number} amount
@@ -690,6 +695,49 @@ function asmExeOpPayment(dest, amount, issuer, code) {
 }
 
 /**
+ * 组合Privilege的protobuf对象
+ * @param {number} weight
+ * @param {array} signers
+ * @param {string} tx
+ * @param {array} thresholds
+ * @param {string} src
+ * @return {object}
+ */
+function asmExeOpPrivilege(weight, signers, tx, thresholds, src) {
+    let opSP = new protoChain.OperationSetPrivilege();
+    opSP.setMasterWeight(weight);
+    opSP.setTxThreshold(tx);
+    for (let i = 0; signers && i < signers.length; i++) {
+        if (commonUtil.objectCheck(signers[i], {
+            'address': 'string',
+            'weight': 'number'})) {
+                let s = new protoChain.Signer();
+                s.setAddress(signers[i].address);
+                s.setWeight(signers[i].weight);
+                opSP.addSigners(s);
+            }
+    }
+    for (let i = 0; thresholds && i < thresholds.length; i++) {
+        if (commonUtil.objectCheck(thresholds[i], {
+            'type': 'number',
+            'threshold': 'number'})) {
+                let t = new protoChain.OperationTypeThreshold();
+                t.setType(thresholds[i].type);
+                t.setThreshold(thresholds[i].threshold);
+                opSP.addTypeThresholds(t);
+            }
+    }
+    let op = new protoChain.Operation();
+    op.setType(protoChain.Operation.Type.SET_PRIVILEGE);
+    op.setSetPrivilege(opSP);
+    if (typeof src === 'string' && src.length > 0) {
+        op.setSourceAddress(src);
+    }
+    console.log(JSON.stringify(op.toObject()));
+    return op;
+}
+
+/**
  * 组合Issue的protobuf对象
  * @param {number} amount
  * @param {string} code
@@ -706,43 +754,15 @@ function asmExeOpIssue(amount, code) {
 }
 
 /**
- * 组合SetThreshold的protobuf对象
- * @param {number} weight
- * @param {array} signers
- * @return {object}
- */
-function asmExeOpSigners(weight, signers) {
-    let opSS = new protoChain.OperationSetSignerWeight();
-    if (typeof weight === 'number') {
-        opSS.setMasterWeight(weight);
-    }
-    if (commonUtil.isArray(signers)) {
-        signers.forEach((ele)=>{
-            let s = new protoChain.Signer();
-            s.setAddress(ele.address);
-            s.setWeight(ele.weight);
-            opSS.addSigners(s);
-        });
-    }
-    let op = new protoChain.Operation();
-    op.setType(protoChain.Operation.Type.SET_SIGNER_WEIGHT);
-    op.setSetSignerWeight(opSS);
-    return op;
-}
-
-/**
  * 组合Create的protobuf对象
  * @param {string} dest
  * @param {string} balanceInit
  * @param {object} metadatas
  * @param {string} contract
- * @param {number} weight
- * @param {object} signers
- * @param {object} threshold
  * @return {object}
  */
 function asmExeOpCreate(
-    dest, balanceInit, metadatas, contract, weight, signers, threshold) {
+    dest, balanceInit, metadatas, contract) {
         let opCA = new protoChain.OperationCreateAccount();
         opCA.setDestAddress(dest);
         opCA.setInitBalance(parseInt(balanceInit));
@@ -758,46 +778,15 @@ function asmExeOpCreate(
                 }
             });
         }
-
         let privilege = new protoChain.AccountPrivilege();
-        privilege.setMasterWeight(defaultMasterWeight);
-        let thre = new protoChain.AccountThreshold();
-        thre.setTxThreshold(defaultTxThreshold);
-        if (commonUtil.isObject(signers)
-            || commonUtil.isObject(threshold)
-            || (typeof weight === 'number')) {
-                if (commonUtil.isObject(threshold)
-                    && Object.keys(threshold).length > 0) {
-                        Object.keys(threshold).forEach((ele) => {
-                            if (ele === 'tx') {
-                                thre.setTxThreshold(threshold[ele]);
-                                return;
-                            }
-                            if (Object.keys(transactionType).includes(ele)) {
-                                let thType =
-                                    new protoChain.OperationTypeThreshold();
-                                thType.setType(transactionType[ele]);
-                                thType.setThreshold(threshold[ele]);
-                                thre.addTypeThresholds(thType);
-                            }
-                        });
-                }
-                if (commonUtil.isObject(signers)) {
-                    Object.keys(signers).forEach((ele) => {
-                        if (typeof ele === 'string'
-                            && typeof signers[ele] === 'number') {
-                                let signer = new protoChain.Signer();
-                                signer.setAddress(ele);
-                                signer.setWeight(signers[ele]);
-                                privilege.addSigners(signer);
-                        }
-                    });
-                }
-                if (typeof weight === 'number') {
-                    privilege.setMasterWeight(weight);
-                }
+        let thres = new protoChain.AccountThreshold();
+        thres.setTxThreshold(defaultTxThreshold);
+        privilege.setThresholds(thres);
+        if (typeof contract === 'string' && contract.length > 0) {
+            privilege.setMasterWeight(0);
+        } else {
+            privilege.setMasterWeight(defaultMasterWeight);
         }
-        privilege.setThresholds(thre);
         opCA.setPriv(privilege);
         if (typeof contract === 'string' && contract.length > 0) {
             let cont = new protoChain.Contract();
@@ -882,18 +871,18 @@ ops:
 */
 /**
  * 执行交易，根据type决定是获取交易费用、获取交易blob还是直接进行交易
- * @param {string} type
- * @param {string} addrSrc
- * @param {string} feeLimit
- * @param {string} gasPrice
- * @param {string} privateKey
- * @param {string} note
- * @param {number} seqOffset
- * @param {array} ops
+ * @param {string}          type
+ * @param {string}          addrSrc
+ * @param {string}          feeLimit
+ * @param {string}          gasPrice
+ * @param {array(string)}   privateKeys
+ * @param {string}          note
+ * @param {number}          seqOffset
+ * @param {array}           ops
  * @return {string}
  */
 async function makeADeal(
-    type, addrSrc, feeLimit, gasPrice, privateKey, note, seqOffset, ops) {
+    type, addrSrc, feeLimit, gasPrice, privateKeys, note, seqOffset, ops) {
     let postData = '';
     let nonce = 0;
     let opsRecord = '';
@@ -966,10 +955,7 @@ async function makeADeal(
                                     ops[i][1].dest,
                                     ops[i][1].balanceInit,
                                     ops[i][1].metadatas,
-                                    ops[i][1].contract,
-                                    ops[i][1].weight,
-                                    ops[i][1].signers,
-                                    ops[i][1].threshold));
+                                    ops[i][1].contract));
                             break;
                         case constUtil.TX_TYPE.METADATA.TYPE:
                             tx.addOperations(
@@ -977,18 +963,6 @@ async function makeADeal(
                                     ops[i][1].key,
                                     ops[i][1].value,
                                     ops[i][1].version));
-                            break;
-                        case constUtil.TX_TYPE.SIGNER.TYPE:
-                            tx.addOperations(
-                                asmExeOpSigners(
-                                    ops[i][1].weight,
-                                    ops[i][1].signers));
-                            break;
-                        case constUtil.TX_TYPE.THRESHOLD.TYPE:
-                            tx.addOperations(
-                                asmExeOpThreshold(
-                                    ops[i][1].tx,
-                                    ops[i][1].thresholds));
                             break;
                         case constUtil.TX_TYPE.PAYMENT.TYPE:
                             tx.addOperations(
@@ -1004,6 +978,15 @@ async function makeADeal(
                                     ops[i][1].amount,
                                     ops[i][1].code));
                             break;
+                        case constUtil.TX_TYPE.PRIVILEGE.TYPE:
+                            tx.addOperations(
+                                asmExeOpPrivilege(
+                                    ops[i][1].masterWeight,
+                                    ops[i][1].signers,
+                                    ops[i][1].txThreshold,
+                                    ops[i][1].typeThresholds,
+                                    ops[i][1].srcAddress));
+                            break;
                     }
                 }
             }
@@ -1011,22 +994,26 @@ async function makeADeal(
             if (type === 'blob') {
                 return blob;
             }
-            let ret = await commonUtil.queryInfo(
-                'sign-data', [privateKey, blob]);
-            if (ret === undefined) {
-                throw (commonUtil.packageError(constUtil.ERRORS.ERR_EXE));
-            }
-            ret = JSON.parse(ret);
             let post = {
                 'items': [
                     {
                         'transaction_blob': blob,
-                        'signatures': [{
-                            'sign_data': ret.sign_data,
-                            'public_key': ret.public_key}],
+                        'signatures': [],
                     },
                 ],
             };
+            for(let j = 0; j < privateKeys.length; j++) {
+                let ret = await commonUtil.queryInfo(
+                    'sign-data', [privateKeys[j], blob]);
+                if (ret === undefined) {
+                    throw (commonUtil.packageError(constUtil.ERRORS.ERR_EXE));
+                }
+                ret = JSON.parse(ret);
+                post.items[0].signatures.push({
+                    'sign_data': ret.sign_data,
+                    'public_key': ret.public_key
+                })
+            }
             opsRecord = tx.toObject();
             postData = JSON.stringify(post); break;
 
@@ -1052,9 +1039,7 @@ async function makeADeal(
                             'metadata': '',
                             'operations': [],
                         },
-                        'private_keys': [
-                            privateKey,
-                        ],
+                        'private_keys': privateKeys,
                     }],
                 },
             };

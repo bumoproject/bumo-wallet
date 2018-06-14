@@ -120,10 +120,13 @@ export default {
   fmtGasPrice (gasPrice) {
     global.nodeSerGasPrice = '1000'
     var nodeSerGasPrice = parseInt(global.nodeSerGasPrice)
-    var fmtGasPrice = parseInt((gasPrice * 100000000).toString().substring(0, 2) + '00')
-    // 0.000014749262536873157
+    var maxSerGasPrice = 8000
+    var str = parseInt(gasPrice * 100000000).toString()
+    var fmtGasPrice = parseInt(str.substring(0, str.length - 2) + '00')
     if (fmtGasPrice < nodeSerGasPrice) {
       return nodeSerGasPrice
+    } else if (fmtGasPrice > maxSerGasPrice) {
+      return maxSerGasPrice
     } else {
       return fmtGasPrice
     }

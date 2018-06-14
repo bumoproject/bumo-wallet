@@ -19,7 +19,7 @@ let config = {
     arch: 'x64',
     asar: true,
     dir: path.join(__dirname, 'app'),
-    'app-copyright': 'BUMO foundation',
+    'app-copyright': 'BUMO Foundation',
     icon: path.join(__dirname, 'app/icons/logo'),
     ignore: /\b(src|index\.ejs|icons)\b/,
     out: path.join(__dirname, 'build'),
@@ -28,7 +28,7 @@ let config = {
     versionStringProductName: 'bumoWallet',
     platform: process.env.PLATFORM_TARGET || 'all',
     'version-string': {
-      'CompanyName': 'BUMO foundation',
+      'CompanyName': 'BUMO Foundation',
       'FileDescription': 'BumoWallet',
       'OriginalFilename': 'BumoWallet',
       'ProductName': 'BumoWallet',

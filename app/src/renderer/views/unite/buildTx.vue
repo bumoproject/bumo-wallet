@@ -134,6 +134,7 @@ export default {
       accountBalance: 0,
       availableAssetAmount: 0,
       destAddrValidate: '',
+      signersCount: 1,
       sendAssetData: {
         srcAddr: '',
         destAddr: '',
@@ -159,6 +160,25 @@ export default {
                   this.accountType = false
                 } else {
                   this.accountType = true
+                  this.signersCount = resData.data.priv.signers.length
+                  switch (this.signersCount) {
+                    case 1:
+                    case 2:
+                    case 3:
+                    case 4:
+                    case 5: this.sendAssetData.fee = '0.01'; break
+                    case 6: this.sendAssetData.fee = '0.05'; break
+                    case 7:
+                    case 8:
+                    case 9:
+                    case 10:
+                    case 11:
+                    case 12:
+                    case 13:
+                    case 14:
+                    case 15:
+                    case 16: this.sendAssetData.fee = '0.1'; break
+                  }
                 }
               }).catch(data => {
                 console.log('err data:', data)
@@ -332,7 +352,8 @@ export default {
             sentAssetAmount: that.sendAssetData.sentAssetAmount,
             note: that.sendAssetData.note,
             fee: that.sendAssetData.fee,
-            seqOffset: 0
+            seqOffset: 0,
+            signersCount: this.signersCount
           }
           txService.buildTxBlob(reqData).then(respData => {
             if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {

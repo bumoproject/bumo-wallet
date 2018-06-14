@@ -160,15 +160,12 @@ export default {
         'METADATA': {
             'TYPE': 4,
             'NAME': 'SET_METADATA'},
-        'SIGNER': {
-            'TYPE': 5,
-            'NAME': 'SET_SIGNER_WEIGHT'},
-        'THRESHOLD': {
-            'TYPE': 6,
-            'NAME': 'SET_THRESHOLD'},
         'PAYCOIN': {
             'TYPE': 7,
             'NAME': 'PAY_COIN'},
+        'PRIVILEGE': {
+            'TYPE': 9,
+            'NAME': 'SET_PRIVILEGE'},
     },
     'BUILDIN_UNIT_IN': 8,
     'BUILDIN_UNIT_OUT': -8,

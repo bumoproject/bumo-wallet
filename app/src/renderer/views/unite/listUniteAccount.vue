@@ -286,9 +286,11 @@ export default {
       },
       showMemberTable: false, // 标识是否显示共管成员table
       tempUniteAccountAddr: '', // 暂存联名账户地址
+      tempUniteAccountPrivKey: '',
       createUniteAccountData: {// 创建联名账户提交表单
         manageType: '',
         uniteAccountAddress: '',
+        uniteAccountPrivKey: '',
         memberNum: '',
         items: [
           {
@@ -527,8 +529,27 @@ export default {
           }
           arr.push(obj)
         }
+        var num = parseInt(val)
         that.createUniteAccountData.items = arr
         that.showMemberTable = true
+        switch (num) {
+          case 1:
+          case 2:
+          case 3:
+          case 4:
+          case 5: this.createUniteAccountData.fee = '0.01'; break
+          case 6: this.createUniteAccountData.fee = '0.06'; break
+          case 7:
+          case 8:
+          case 9:
+          case 10:
+          case 11:
+          case 12:
+          case 13:
+          case 14:
+          case 15:
+          case 16: this.createUniteAccountData.fee = '0.1'; break
+        }
       }
     },
     switchManageType (type) { // 切换共管模式
@@ -719,7 +740,9 @@ export default {
         accountService.buildAccount().then(respData => {
           if (errorUtil.ERRORS.SUCCESS.CODE === respData.errCode) {
             that.createUniteAccountData.uniteAccountAddress = respData.data.address
+            that.createUniteAccountData.uniteAccountPrivKey = respData.data.privKey
             that.tempUniteAccountAddr = respData.data.address
+            that.tempUniteAccountPrivKey = respData.data.privKey
           }
         }).catch(data => {
           console.log('err data:', data)

@@ -245,6 +245,7 @@ export default {
         console.log('bumo wallet getNewAddress: ' + JSON.stringify(sdkRespData))
         if (errorUtil.ERRORS.SUCCESS.CODE === sdkRespData.errCode) {
           respData.data.address = sdkRespData.data.address
+          respData.data.privKey = sdkRespData.data.privKey
         }
         resolve(respData)
       })
@@ -289,9 +290,10 @@ export default {
         if (errorUtil.ERRORS.SUCCESS.CODE === respGetAccountTokenBalanceData.errCode) {
           balanceInit = respGetAccountTokenBalanceData.data.reserve
         }
-        baseService.getCreateAccountGasPrice(srcAddress, destAddress, opts.fee).then(respSendTokenGasPriceData => {
+        var signerCounts = 2
+        baseService.getCreateAccountGasPrice(srcAddress, destAddress, opts.fee, signerCounts).then(respSendTokenGasPriceData => {
           var gasPrice = respSendTokenGasPriceData
-          var reqData = {
+          var printData = {
             srcAddress,
             destAddress,
             feeLimit: opts.fee,
@@ -305,7 +307,22 @@ export default {
             signers,
             weight: 0
           }
-          console.log('bumo wallet createUnitAccount.req: ' + JSON.stringify(reqData))
+          var reqData = {
+            srcAddress,
+            destAddress,
+            feeLimit: opts.fee,
+            gasPrice: gasPrice,
+            privateKeyDest: opts.uniteAccountPrivKey,
+            accountNick: opts.walletAccount.nick,
+            balanceInit,
+            pwd: opts.walletAccountPwd,
+            threshold: {
+              tx: opts.masterWeight
+            },
+            signers,
+            weight: 0
+          }
+          console.log('bumo wallet createUnitAccount.req: ' + JSON.stringify(printData))
           bSdk.tx.createAccount(reqData).then(sdkRespData => {
             console.log('bumo wallet createUnitAccount.resp: ' + JSON.stringify(sdkRespData))
             if (errorUtil.ERRORS.SUCCESS.CODE === sdkRespData.errCode) {

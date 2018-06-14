@@ -82,20 +82,16 @@ export default {
       }
     }
   },
-  async getSendTokenGasPrice (srcAddr, destAddr, sentAssetAmount, note, fee) {
+  async getSendTokenGasPrice (srcAddr, destAddr, sentAssetAmount, note, fee, signers) {
     var gasPrice = null
-    var signerCount = null
+    var signerCount = 1
+    signers ? signerCount = signers : signerCount = 1
     // 获取账户信息
     var reqWalletAccountTokenBalanceOpts = {
       address: srcAddr
     }
     await bSdk.account.getAccountTokenBalance(reqWalletAccountTokenBalanceOpts).then(respGetAccountTokenBalanceData => {
       console.log('respGetAccountTokenBalanceData: ' + JSON.stringify(respGetAccountTokenBalanceData))
-      if (respGetAccountTokenBalanceData.data.priv.signers === undefined) {
-        signerCount = 1
-      } else {
-        signerCount = respGetAccountTokenBalanceData.data.priv.signers.length
-      }
     })
     var reqOpts = {
       type: 'blob',
@@ -122,20 +118,16 @@ export default {
     })
     return tools.fmtGasPrice(gasPrice).toString()
   },
-  async getCreateAccountGasPrice (srcAddr, destAddr, fee) {
+  async getCreateAccountGasPrice (srcAddr, destAddr, fee, signers) {
     var gasPrice = null
-    var signerCount = null
     var accountReserve = null
+    var signerCount = 2
+    signers ? signerCount = signers : signerCount = 2
     // 获取账户信息
     var reqWalletAccountTokenBalanceOpts = {
       address: srcAddr
     }
     await bSdk.account.getAccountTokenBalance(reqWalletAccountTokenBalanceOpts).then(respGetAccountTokenBalanceData => {
-      if (respGetAccountTokenBalanceData.data.priv === undefined || respGetAccountTokenBalanceData.data.priv.signers === undefined) {
-        signerCount = 1
-      } else {
-        signerCount = respGetAccountTokenBalanceData.data.priv.signers.length
-      }
       accountReserve = respGetAccountTokenBalanceData.data.reserve
     })
     var reqOpts = {
