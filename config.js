@@ -1,11 +1,11 @@
 'use strict'
 
 const path = require('path')
-
+const pkg = require('./package.json')
 let config = {
   // Name of electron app
   // Will be used in production builds
-  name: 'BumoWallet',
+  name: pkg.productName,
   // Use ESLint (extends `standard`)
   // Further changes can be made in `.eslintrc.js`
   eslint: true,

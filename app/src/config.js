@@ -8,7 +8,7 @@ export default {
   reserveAccountBalance: 0.1,
   baseTxFee: '0.01',
   minGasPrice: '1000',
-  walletCatalog: 'BumoWalletTest',
+  walletCatalog: pkg.productName,
   api: {
     port: 80,
     browser: {

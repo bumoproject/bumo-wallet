@@ -1,9 +1,9 @@
 import cfg from '../../../config'
 export default {
     'connections': {
-        'http_host': 'seed1.bumo.io',
+        'http_host': '127.0.0.1',
         'http_port': '16002',
-        'ws_host': 'seed1.bumo.io',
+        'ws_host': '127.0.0.1',
         'ws_port': '16003',
         'retry_times': -1,
         'retry_wait_time': 5000,
