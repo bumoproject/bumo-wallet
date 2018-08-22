@@ -1,4 +1,4 @@
-<template>
+.send-asset-confirm-wraper span.tx-note<template>
   <section>
     <div class="page-content tx-index">
       <div class="container">
@@ -375,10 +375,10 @@ frmitemh{height: 20px;}
 .ivu-modal-footer{display: block;text-align: center;}
 .send-asset-confirm-wraper {background-color: #F8F8F8;margin-bottom: 12px;padding: 5px 0;}
 .send-asset-confirm-wraper p{padding: 3px 0;display: flex;}
-.send-asset-confirm-wraper p label{text-align: right;width: 150px;display: block;}
+.send-asset-confirm-wraper p label{text-align: right;width: 150px;display: block;flex-shrink: 0;}
 .send-asset-confirm-wraper span{padding-left: 15px;display: block;}
 .send-asset-confirm-wraper b{padding-left: 15px;}
-.send-asset-confirm-wraper span.tx-note{margin-top: -18px;display: block;padding-left: 166px;padding-right: 5px; min-height: 18px; word-break: break-all;}
+.send-asset-confirm-wraper span.tx-note{display: block;padding-right: 5px; min-height: 18px; word-break: break-all;}
 .asset-send-amount .ivu-form-item-content{position: relative; padding-right:35px;}
 .asset-send-amount .ivu-form-item-content .available-asset-amount{position: absolute;right: 45px;top: 2px;bottom: 0;}
 .tx-index {
