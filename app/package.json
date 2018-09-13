@@ -4,19 +4,26 @@
   "description": "bumo wallet",
   "main": "./dist/main.js",
   "dependencies": {
+    "ajv": "^6.5.1",
+    "assert-plus": "^1.0.0",
     "babel-runtime": "^6.25.0",
+    "crypto-js": "3.1.9-1",
     "dotenv": "^4.0.0",
+    "iconv-lite": "^0.4.18",
+    "iview": "^2.0.0",
+    "node-wmic": "^1.1.0",
+    "number-precision": "^1.2.0",
+    "request": "^2.87.0",
+    "request-promise": "^4.2.2",
+    "reset-css": "^2.2.1",
     "vue": "^2.1.10",
     "vue-electron": "^1.0.6",
     "vue-router": "^2.1.2",
-    "vuex": "^2.1.1",
-    "iconv-lite": "^0.4.18",
-    "iview": "^2.0.0",
-    "number-precision": "^1.2.0",
-    "node-wmic": "^1.1.0",
-    "crypto-js": "3.1.9-1",
-    "reset-css": "^2.2.1"
+    "vuex": "^2.1.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "request": "^2.87.0",
+    "request-promise": "^4.2.2"
+  },
   "author": ""
 }

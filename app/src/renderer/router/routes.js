@@ -94,6 +94,12 @@ const OutlineSignTx = resolve => {
   })
 }
 
+const Token = resolve => {
+  import('@/views/token/index').then(module => {
+    resolve(module)
+  })
+}
+
 const routes = [
   {
     path: '/account',
@@ -177,6 +183,17 @@ const routes = [
       path: '/unite/index',
       name: 'Unite',
       component: Unite
+    }]
+  },
+  {
+    path: '/token',
+    name: 'token',
+    component: Main,
+    redirect: '/token/index',
+    children: [{
+      path: '/token/index',
+      name: 'Token',
+      component: Token
     }]
   },
   {

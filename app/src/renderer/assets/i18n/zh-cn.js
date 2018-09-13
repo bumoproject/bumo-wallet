@@ -157,6 +157,7 @@ export default {
   'header': {
     'nav': {
       'home': '首页',
+      'token': 'Token',
       'send': '转账',
       'outlineSignTx': '离线签名交易',
       'uniteAccountTx': '联名账户交易',
@@ -219,9 +220,65 @@ export default {
       }
     }
   },
+  'token': {
+    'content': {
+      'overallBalance': {
+        'title': '余额',
+        'accountAddress': '账户地址',
+        'copyBtn': '复制',
+        'copyTip': '双击可复制账户地址',
+        'unsyncBlock': '区块同步中，余额暂时无法获取'
+      },
+      'txStatus': {
+        'success': '交易成功',
+        'processing': '处理中',
+        'balanceNotEnougn': '余额不足',
+        'feeNotEnoughActiveAccount': '激活目标账户费用不足',
+        'timeOut': '交易超时',
+        'fail': '失败'
+      },
+      'latestLocalTxRecord': {
+        'title': '最新本地交易记录',
+        'explain': '仅显示从P2P网络收到的活跃交易记录。如</br>需查询账户全部历史交易，请访问区块链浏</br>览器（explorer.bumo.io）',
+        'noData': '您还没有本地交易记录',
+        'sendToken': '转账',
+        'tableHeader': {
+          'status': '状态',
+          'time': '时间',
+          'srcAddr': '付款账户地址',
+          'destAddr': '收款账户地址',
+          'num': '数量'
+        },
+        'pagination': {
+          'total': '共',
+          'unit': '页',
+          'content': '条'
+        },
+        'dialog': {
+          'title': '交易详情',
+          'hash': '交易哈希',
+          'time': '时间',
+          'txStatus': '状态',
+          'srcAddr': '付款账户地址',
+          'destAddr': '收款账户地址',
+          'amount': '转账数量',
+          'actualFee': '交易费',
+          'activationFee': '账户激活费用',
+          'actualFeeComputing': '计算中',
+          'note': '备注',
+          'noNote': '暂无备注',
+          'close': '关闭'
+        }
+      }
+    }
+  },
   'send': {
     'noSyncBlock': '区块同步中，无法转账',
     'form': {
+      'currentTokenType': {
+        'label': '资产类型',
+        'placeholder': '请选择'
+      },
       'destAddr': {
         'label': '收款账户地址',
         'placeholder': '以bu开头的区块链账户地址'
@@ -232,8 +289,8 @@ export default {
         'balance': '可用余额'
       },
       'fee': {
-        'label': '交易费',
-        'placeholder': '请输入费用'
+        'label': '最多交易费',
+        'placeholder': '请输入交易费用'
       },
       'note': {
         'label': '备注',
@@ -247,7 +304,7 @@ export default {
       'srcAddr': '付款账户地址',
       'destAddr': '收款账户地址',
       'sentAssetAmount': '转账数量',
-      'fee': '交易费',
+      'fee': '最多交易费',
       'note': '备注',
       'pwdPlaceholder': '请输入钱包密码'
     }
@@ -271,7 +328,7 @@ export default {
           'balance': '可用余额'
         },
         'fee': {
-          'label': '交易费'
+          'label': '最多交易费'
         },
         'note': {
           'label': '备注',
@@ -285,7 +342,7 @@ export default {
           'srcAddr': '付款账户地址',
           'destAddr': '收款账户地址',
           'txAmount': '转账数量',
-          'fee': '交易费',
+          'fee': '最多交易费',
           'note': '备注',
           'noNote': '暂无备注'
         },
@@ -386,7 +443,7 @@ export default {
           'tips': '提交交易时，签名账户权重之和≥门限权重，才能转账成功'
         },
         'fee': {
-          'label': '交易费',
+          'label': '最多交易费',
           'placeholder': '',
           'tips': '费用在0.01-10之间，可对费用进行修改，修改值不得低于钱包计算值'
         },
@@ -451,7 +508,7 @@ export default {
           'balance': '可用余额'
         },
         'fee': {
-          'label': '交易费'
+          'label': '最多交易费'
         },
         'note': {
           'label': '备注',
@@ -465,7 +522,7 @@ export default {
           'srcAddr': '付款账户地址',
           'destAddr': '收款账户地址',
           'txAmount': '转账数量',
-          'fee': '交易费',
+          'fee': '最多交易费',
           'note': '备注',
           'noNote': '暂无备注'
         },
@@ -589,6 +646,7 @@ export default {
     }
   },
   'error': {
+    'currentTokenType': '请选择token',
     'walletPwdEmpty': '钱包密码不能为空',
     'walletName': {
       'empty': '请选择账户名',
@@ -645,14 +703,16 @@ export default {
       'moreThanAvailable': '不可超过可用数量',
       'notNum': '转账数量应为数字',
       'numTooBig': '数量过大！',
-      'numLimit': '转账数量应大于0,最多支持小数点后8位'
+      'numLimit': '转账数量应大于0,最多支持小数点后8位',
+      'tokenNum': '转移数量应为正整数'
     },
     'fee': {
       'empty': '交易费用不能为空',
       'lessThanZero': '交易费用应大于0',
       'numLimit': '交易费用应大于0,最多支持小数点后8位',
       'numTooBig': '交易费用过大',
-      'numBig': '费用应为≤10BU的数字'
+      'numBig': '交易费用应为≤10BU的数字',
+      'numSmall': '交易费用不足'
     },
     'note': {
       'limit200': '字数限200内'

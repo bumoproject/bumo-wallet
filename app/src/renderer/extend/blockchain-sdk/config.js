@@ -7,6 +7,8 @@ export default {
         'ws_port': '16003',
         'retry_times': -1,
         'retry_wait_time': 5000,
+        'wallet_host': cfg.api.wallet.serverHost,
+        'wallet_port': cfg.api.wallet.port,
     },
     'account': {
         'sync_node_start': false,

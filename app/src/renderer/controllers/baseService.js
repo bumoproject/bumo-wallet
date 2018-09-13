@@ -6,7 +6,7 @@ export default {
   getRecentVersion (store) {
     var options = {
       hostname: cfg.api.wallet.serverHost,
-      port: cfg.api.port,
+      port: cfg.api.wallet.port,
       path: '/sys/version',
       method: 'GET'
     }
@@ -74,8 +74,11 @@ export default {
     if (lang === null || lang === '') {
       this.setLang('cn')
       return 'cn'
+    } else if (lang === '"ct"' || lang === 'ct') {
+      this.setLang('cn')
+      return 'cn'
     } else {
-      if (lang === '"cn"' || lang === '"en"' || lang === '"ct"') {
+      if (lang === '"cn"' || lang === '"en"') {
         return JSON.parse(lang)
       } else {
         return lang

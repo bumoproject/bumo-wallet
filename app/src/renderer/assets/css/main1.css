@@ -118,6 +118,9 @@ textarea.ivu-input::-webkit-input-placeholder {
 .tx-list .ivu-page-next a, .ivu-page-prev a {
   font-size: 18px;
 }
+.ivu-page-next a, .ivu-page-prev a {
+  font-size: 18px;
+}
 .tx-list .ivu-page-item a {
   margin: 0;
 }
@@ -127,6 +130,9 @@ textarea.ivu-input::-webkit-input-placeholder {
   height: 16px;
   line-height: 16px;
   text-align: center;
+}
+.ivu-page-total .list-count{
+  font-size: 10px;
 }
 /* 离线签名交易需覆盖的样式 */
 .ivu-modal-footer{display: block;text-align: center;}

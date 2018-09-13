@@ -3,7 +3,10 @@ import http from 'http';
 import conf from '../config';
 import CryptoJS from 'crypto-js';
 import fs from 'fs';
-import {spawnSync, spawn} from 'child_process';
+import {
+  spawnSync,
+  spawn
+} from 'child_process';
 // import ffi from 'ffi';
 // import ref from 'ref';
 
@@ -182,7 +185,7 @@ export default {
    * @return {array}
    */
   getWalletAccount: function(nameForFind) {
-  let result = [];
+    let result = [];
     let stat = fs.statSync(conf.store.account_store);
     if (stat && stat.isDirectory()) {
       let files = fs.readdirSync(conf.store.account_store);
@@ -194,8 +197,8 @@ export default {
             return;
           }
           if (ele.substr(
-            ele.length - conf.store.account_store_suffix.length).toUpperCase()
-            !== conf.store.account_store_suffix.toUpperCase()) {
+              ele.length - conf.store.account_store_suffix.length).toUpperCase() !==
+            conf.store.account_store_suffix.toUpperCase()) {
             return;
           }
           filename = ele.substr(
@@ -210,16 +213,16 @@ export default {
         }
       });
     }
-  return result;
-},
+    return result;
+  },
   /**
    * 根据昵称获取账号文件路径
    * @param {string} nick
    * @return {string}
    */
   getWalletAccountFilePath: function(nick) {
-    return conf.store.account_store + '/' + nick
-        + conf.store.account_store_suffix;
+    return conf.store.account_store + '/' + nick +
+      conf.store.account_store_suffix;
   },
   // add event handler within sdk
   eventInnerAdd: evtAddInner,
@@ -240,9 +243,9 @@ export default {
         global.BlockchainCallbackList = {};
       }
     } else {
-      if (typeof eventName === 'string'
-        && global.hasOwnProperty('BlockchainCallbackList')
-        && global.BlockchainCallbackList.hasOwnProperty(eventName)) {
+      if (typeof eventName === 'string' &&
+        global.hasOwnProperty('BlockchainCallbackList') &&
+        global.BlockchainCallbackList.hasOwnProperty(eventName)) {
         global.BlockchainCallbackList[eventName] = [];
       }
     }
@@ -284,22 +287,24 @@ export default {
               return false;
             }
           case 'array':
-            if (typeof obj[element] === 'object'
-                && Array.isArray(obj[element])) {
-                  return true;
-                } else {
-                  result = false;
-                  return false;
-                }
+            if (typeof obj[element] === 'object' &&
+              Array.isArray(obj[element])) {
+              return true;
+            } else {
+              result = false;
+              return false;
+            }
           case 'object':
-            if (typeof obj[element] === 'object'
-                && !Array.isArray(obj[element])) {
-                  return true;
-                } else {
-                  result = false;
-                  return false;
-                }
-          default: result = false; return false;
+            if (typeof obj[element] === 'object' &&
+              !Array.isArray(obj[element])) {
+              return true;
+            } else {
+              result = false;
+              return false;
+            }
+          default:
+            result = false;
+            return false;
         }
       } else {
         result = false;
@@ -329,22 +334,24 @@ export default {
                 return false;
               }
             case 'array':
-              if (typeof obj[element] === 'object'
-                  && Array.isArray(obj[element])) {
-                    return true;
-                  } else {
-                    result = false;
-                    return false;
-                  }
+              if (typeof obj[element] === 'object' &&
+                Array.isArray(obj[element])) {
+                return true;
+              } else {
+                result = false;
+                return false;
+              }
             case 'object':
-              if (typeof obj[element] === 'object'
-                  && !Array.isArray(obj[element])) {
-                    return true;
-                  } else {
-                    result = false;
-                    return false;
-                  }
-            default: result = false; return false;
+              if (typeof obj[element] === 'object' &&
+                !Array.isArray(obj[element])) {
+                return true;
+              } else {
+                result = false;
+                return false;
+              }
+            default:
+              result = false;
+              return false;
           }
         } else {
           return true;
@@ -369,9 +376,9 @@ export default {
     return false;
   },
   isSuccess: function(ret) {
-    if (ret
-        && ret.hasOwnProperty('errCode')
-        && ret.errCode === errorUtil.ERRORS.SUCCESS.CODE) {
+    if (ret &&
+      ret.hasOwnProperty('errCode') &&
+      ret.errCode === errorUtil.ERRORS.SUCCESS.CODE) {
       return true;
     }
     return false;
@@ -403,113 +410,161 @@ export default {
   packageHttpErr: function(errorCode, errorDesc) {
     if (errorCode !== errorUtil.ERRORS.SUCCESS.CODE) {
       trigger(errorUtil.EVENTS.ERROR, {
-          'position': getCallstackLine(3),
-          'message': errorDesc});
+        'position': getCallstackLine(3),
+        'message': errorDesc
+      });
     }
     switch (errorCode) {
-      case 0: return {
-        'errCode': errorUtil.ERRORS.SUCCESS.CODE,
-        'msg': errorUtil.ERRORS.SUCCESS.MSG};
-      case 100: return {
-        'errCode': errorUtil.ERRORS.ERR_LOW_BALANCE.CODE,
-        'msg': errorUtil.ERRORS.ERR_LOW_BALANCE.MSG};
-      case 111: return {
-        'errCode': errorUtil.ERRORS.ERR_TX_LOW_FEE.CODE,
-        'msg': errorUtil.ERRORS.ERR_TX_LOW_FEE.MSG};
-      case 2: return {
-        'errCode': errorUtil.ERRORS.ERR_TX_STR_TIMEOUT.CODE,
-        'msg': errorUtil.ERRORS.ERR_TX_STR_TIMEOUT.MSG};
-      case 93: return {
-        'errCode': errorUtil.ERRORS.ERR_TX_NO_ENOUGH_WEIGHT.CODE,
-        'msg': errorUtil.ERRORS.ERR_TX_NO_ENOUGH_WEIGHT.MSG};
-      case 99: return {
-        'errCode': errorUtil.ERRORS.ERR_TX_NONCE_INVALID.CODE,
-        'msg': errorUtil.ERRORS.ERR_TX_NONCE_INVALID.MSG};
-      default: return {
-        'errCode': errorUtil.ERRORS.ERR_HTTP_UNEXPECTED.CODE,
-        'msg': errorUtil.ERRORS.ERR_HTTP_UNEXPECTED.MSG +
-          '(' + errorCode + ':' + errorDesc + ')'};
+      case 0:
+        return {
+          'errCode': errorUtil.ERRORS.SUCCESS.CODE,
+          'msg': errorUtil.ERRORS.SUCCESS.MSG
+        };
+      case 100:
+        return {
+          'errCode': errorUtil.ERRORS.ERR_LOW_BALANCE.CODE,
+          'msg': errorUtil.ERRORS.ERR_LOW_BALANCE.MSG
+        };
+      case 111:
+        return {
+          'errCode': errorUtil.ERRORS.ERR_TX_LOW_FEE.CODE,
+          'msg': errorUtil.ERRORS.ERR_TX_LOW_FEE.MSG
+        };
+      case 2:
+        return {
+          'errCode': errorUtil.ERRORS.ERR_TX_STR_TIMEOUT.CODE,
+          'msg': errorUtil.ERRORS.ERR_TX_STR_TIMEOUT.MSG
+        };
+      case 93:
+        return {
+          'errCode': errorUtil.ERRORS.ERR_TX_NO_ENOUGH_WEIGHT.CODE,
+          'msg': errorUtil.ERRORS.ERR_TX_NO_ENOUGH_WEIGHT.MSG
+        };
+      case 99:
+        return {
+          'errCode': errorUtil.ERRORS.ERR_TX_NONCE_INVALID.CODE,
+          'msg': errorUtil.ERRORS.ERR_TX_NONCE_INVALID.MSG
+        };
+      default:
+        return {
+          'errCode': errorUtil.ERRORS.ERR_HTTP_UNEXPECTED.CODE,
+          'msg': errorUtil.ERRORS.ERR_HTTP_UNEXPECTED.MSG +
+            '(' + errorCode + ':' + errorDesc + ')'
+        };
     }
   },
   packageError: function(ErrObj, note) {
     if (ErrObj.CODE !== errorUtil.ERRORS.SUCCESS.CODE) {
-      trigger(errorUtil.EVENTS.ERROR,
-        {
-          'position': getCallstackLine(3),
-          'message': JSON.stringify(
-            ErrObj, Object.getOwnPropertyNames(ErrObj))});
+      trigger(errorUtil.EVENTS.ERROR, {
+        'position': getCallstackLine(3),
+        'message': JSON.stringify(
+          ErrObj, Object.getOwnPropertyNames(ErrObj))
+      });
     }
     return {
       'errCode': ErrObj.CODE,
-      'msg': ErrObj.MSG + (note ? note : '')};
+      'msg': ErrObj.MSG + (note ? note : '')
+    };
   },
-  handleError: dealError};
+  handleError: dealError
+};
 
 /**
-  * 处理错误信息，包括node内置错误
-  * @param {object} err
-  * @return {object}
-  */
+ * 处理错误信息，包括node内置错误
+ * @param {object} err
+ * @return {object}
+ */
 function dealError(err) {
   if (!err) {
     return {
       'errCode': errorUtil.ERRORS.ERR_UNKNOWN.CODE,
-      'msg': errorUtil.ERRORS.ERR_UNKNOWN.MSG};
+      'msg': errorUtil.ERRORS.ERR_UNKNOWN.MSG
+    };
   }
   trigger(errorUtil.EVENTS.ERROR, {
     'position': getCallstackLine(3),
-    'message': JSON.stringify(err, Object.getOwnPropertyNames(err))});
+    'message': JSON.stringify(err, Object.getOwnPropertyNames(err))
+  });
   if (err.hasOwnProperty('errCode')) {
     return err;
   }
   if (!err.hasOwnProperty('code')) {
     return {
       'errCode': errorUtil.ERRORS.ERR_UNKNOWN.CODE,
-      'msg': errorUtil.ERRORS.ERR_UNKNOWN.MSG};
+      'msg': errorUtil.ERRORS.ERR_UNKNOWN.MSG
+    };
   }
   switch (err.code) {
-    case 'EACCES': return {
-      'errCode': errorUtil.ERRORS.ERR_EACCES.CODE,
-      'msg': errorUtil.ERRORS.ERR_EACCES.MSG};
-    case 'EADDRINUSE': return {
-      'errCode': errorUtil.ERRORS.ERR_EADDRINUSE.CODE,
-      'msg': errorUtil.ERRORS.ERR_EADDRINUSE.MSG};
-    case 'ECONNREFUSED': return {
-      'errCode': errorUtil.ERRORS.ERR_ECONNREFUSED.CODE,
-      'msg': errorUtil.ERRORS.ERR_ECONNREFUSED.MSG};
-    case 'ECONNRESET': return {
-      'errCode': errorUtil.ERRORS.ERR_ECONNRESET.CODE,
-      'msg': errorUtil.ERRORS.ERR_ECONNRESET.MSG};
-    case 'EEXIST': return {
-      'errCode': errorUtil.ERRORS.ERR_EEXIST.CODE,
-      'msg': errorUtil.ERRORS.ERR_EEXIST.MSG};
-    case 'EISDIR': return {
-      'errCode': errorUtil.ERRORS.ERR_EISDIR.CODE,
-      'msg': errorUtil.ERRORS.ERR_EISDIR.MSG};
-    case 'EMFILE': return {
-      'errCode': errorUtil.ERRORS.ERR_EMFILE.CODE,
-      'msg': errorUtil.ERRORS.ERR_EMFILE.MSG};
-    case 'ENOENT': return {
-      'errCode': errorUtil.ERRORS.ERR_ENOENT.CODE,
-      'msg': errorUtil.ERRORS.ERR_ENOENT.MSG};
-    case 'ENOTDIR': return {
-      'errCode': errorUtil.ERRORS.ERR_ENOTDIR.CODE,
-      'msg': errorUtil.ERRORS.ERR_ENOTDIR.MSG};
-    case 'ENOTEMPTY': return {
-      'errCode': errorUtil.ERRORS.ERR_ENOTEMPTY.CODE,
-      'msg': errorUtil.ERRORS.ERR_ENOTEMPTY.MSG};
-    case 'EPERM': return {
-      'errCode': errorUtil.ERRORS.ERR_EPERM.CODE,
-      'msg': errorUtil.ERRORS.ERR_EPERM.MSG};
-    case 'EPIPE': return {
-      'errCode': errorUtil.ERRORS.ERR_EPIPE.CODE,
-      'msg': errorUtil.ERRORS.ERR_EPIPE.MSG};
-    case 'ETIMEDOUT': return {
-      'errCode': errorUtil.ERRORS.ERR_ETIMEDOUT.CODE,
-      'msg': errorUtil.ERRORS.ERR_ETIMEDOUT.MSG};
-    default: return {
-      'errCode': errorUtil.ERRORS.ERR_UNKNOWN.CODE,
-      'msg': errorUtil.ERRORS.ERR_UNKNOWN.MSG + '(' + err.code + ')'};
+    case 'EACCES':
+      return {
+        'errCode': errorUtil.ERRORS.ERR_EACCES.CODE,
+        'msg': errorUtil.ERRORS.ERR_EACCES.MSG
+      };
+    case 'EADDRINUSE':
+      return {
+        'errCode': errorUtil.ERRORS.ERR_EADDRINUSE.CODE,
+        'msg': errorUtil.ERRORS.ERR_EADDRINUSE.MSG
+      };
+    case 'ECONNREFUSED':
+      return {
+        'errCode': errorUtil.ERRORS.ERR_ECONNREFUSED.CODE,
+        'msg': errorUtil.ERRORS.ERR_ECONNREFUSED.MSG
+      };
+    case 'ECONNRESET':
+      return {
+        'errCode': errorUtil.ERRORS.ERR_ECONNRESET.CODE,
+        'msg': errorUtil.ERRORS.ERR_ECONNRESET.MSG
+      };
+    case 'EEXIST':
+      return {
+        'errCode': errorUtil.ERRORS.ERR_EEXIST.CODE,
+        'msg': errorUtil.ERRORS.ERR_EEXIST.MSG
+      };
+    case 'EISDIR':
+      return {
+        'errCode': errorUtil.ERRORS.ERR_EISDIR.CODE,
+        'msg': errorUtil.ERRORS.ERR_EISDIR.MSG
+      };
+    case 'EMFILE':
+      return {
+        'errCode': errorUtil.ERRORS.ERR_EMFILE.CODE,
+        'msg': errorUtil.ERRORS.ERR_EMFILE.MSG
+      };
+    case 'ENOENT':
+      return {
+        'errCode': errorUtil.ERRORS.ERR_ENOENT.CODE,
+        'msg': errorUtil.ERRORS.ERR_ENOENT.MSG
+      };
+    case 'ENOTDIR':
+      return {
+        'errCode': errorUtil.ERRORS.ERR_ENOTDIR.CODE,
+        'msg': errorUtil.ERRORS.ERR_ENOTDIR.MSG
+      };
+    case 'ENOTEMPTY':
+      return {
+        'errCode': errorUtil.ERRORS.ERR_ENOTEMPTY.CODE,
+        'msg': errorUtil.ERRORS.ERR_ENOTEMPTY.MSG
+      };
+    case 'EPERM':
+      return {
+        'errCode': errorUtil.ERRORS.ERR_EPERM.CODE,
+        'msg': errorUtil.ERRORS.ERR_EPERM.MSG
+      };
+    case 'EPIPE':
+      return {
+        'errCode': errorUtil.ERRORS.ERR_EPIPE.CODE,
+        'msg': errorUtil.ERRORS.ERR_EPIPE.MSG
+      };
+    case 'ETIMEDOUT':
+      return {
+        'errCode': errorUtil.ERRORS.ERR_ETIMEDOUT.CODE,
+        'msg': errorUtil.ERRORS.ERR_ETIMEDOUT.MSG
+      };
+    default:
+      return {
+        'errCode': errorUtil.ERRORS.ERR_UNKNOWN.CODE,
+        'msg': errorUtil.ERRORS.ERR_UNKNOWN.MSG + '(' + err.code + ')'
+      };
   }
 }
 
@@ -530,33 +585,33 @@ function getCallstackLine(line) {
  * @param {string}  eventName - 事件名称
  * @param {any}     args      - 事件参数
  * @return {undefined}
-*/
+ */
 function trigger(eventName, args) {
   if (typeof eventName === 'string') {
-    if (global.hasOwnProperty('BlockchainCallbackListInner')
-      && global.BlockchainCallbackListInner.hasOwnProperty(eventName)
-      && global.BlockchainCallbackListInner[eventName].length > 0) {
+    if (global.hasOwnProperty('BlockchainCallbackListInner') &&
+      global.BlockchainCallbackListInner.hasOwnProperty(eventName) &&
+      global.BlockchainCallbackListInner[eventName].length > 0) {
       global.BlockchainCallbackListInner[eventName].forEach((element) => {
         element(args);
       });
     }
     if (global.hasOwnProperty('BlockchainCallbackListInnerOnce')) {
-      if (global.BlockchainCallbackListInnerOnce.pool.hasOwnProperty(eventName)
-          && global.BlockchainCallbackListInnerOnce.pool[eventName].length > 0) {
-            global.BlockchainCallbackListInnerOnce.pool[eventName].forEach((ele)=>{
-              ele(args);
-            });
-            delete global.BlockchainCallbackListInnerOnce.pool[eventName];
-          }
-      if (global.BlockchainCallbackListInnerOnce.queue.hasOwnProperty(eventName)
-          && global.BlockchainCallbackListInnerOnce.queue[eventName].length > 0) {
-            let ele = global.BlockchainCallbackListInnerOnce.queue[eventName].shift();
-            ele(args);
-          }
+      if (global.BlockchainCallbackListInnerOnce.pool.hasOwnProperty(eventName) &&
+        global.BlockchainCallbackListInnerOnce.pool[eventName].length > 0) {
+        global.BlockchainCallbackListInnerOnce.pool[eventName].forEach((ele) => {
+          ele(args);
+        });
+        delete global.BlockchainCallbackListInnerOnce.pool[eventName];
+      }
+      if (global.BlockchainCallbackListInnerOnce.queue.hasOwnProperty(eventName) &&
+        global.BlockchainCallbackListInnerOnce.queue[eventName].length > 0) {
+        let ele = global.BlockchainCallbackListInnerOnce.queue[eventName].shift();
+        ele(args);
+      }
     }
-    if (global.hasOwnProperty('BlockchainCallbackList')
-      && global.BlockchainCallbackList.hasOwnProperty(eventName)
-      && global.BlockchainCallbackList[eventName].length > 0) {
+    if (global.hasOwnProperty('BlockchainCallbackList') &&
+      global.BlockchainCallbackList.hasOwnProperty(eventName) &&
+      global.BlockchainCallbackList[eventName].length > 0) {
       global.BlockchainCallbackList[eventName].forEach((element) => {
         element(args);
       });
@@ -589,30 +644,33 @@ function evtAddInner(eventName, funcCallback) {
  */
 function evtAddInnerOnce(isInQueue, eventName, funcCallback) {
   if (typeof eventName === 'string') {
-    if (funcCallback === undefined
-      && global.hasOwnProperty('BlockchainCallbackListInnerOnce')) {
-        if (global.BlockchainCallbackListInnerOnce.pool
-            .hasOwnProperty(eventName)) {
-          global.BlockchainCallbackListInnerOnce.pool[eventName] = [];
-        }
-        if (global.BlockchainCallbackListInnerOnce.queue
-            .hasOwnProperty(eventName)) {
-          global.BlockchainCallbackListInnerOnce.queue[eventName] = [];
-        }
+    if (funcCallback === undefined &&
+      global.hasOwnProperty('BlockchainCallbackListInnerOnce')) {
+      if (global.BlockchainCallbackListInnerOnce.pool
+        .hasOwnProperty(eventName)) {
+        global.BlockchainCallbackListInnerOnce.pool[eventName] = [];
+      }
+      if (global.BlockchainCallbackListInnerOnce.queue
+        .hasOwnProperty(eventName)) {
+        global.BlockchainCallbackListInnerOnce.queue[eventName] = [];
+      }
     }
     if (!global.hasOwnProperty('BlockchainCallbackListInnerOnce')) {
-      global.BlockchainCallbackListInnerOnce = {'queue': {}, 'pool': {}};
+      global.BlockchainCallbackListInnerOnce = {
+        'queue': {},
+        'pool': {}
+      };
     }
     if (isInQueue) {
       if (!global.BlockchainCallbackListInnerOnce.queue
-          .hasOwnProperty(eventName)) {
+        .hasOwnProperty(eventName)) {
         global.BlockchainCallbackListInnerOnce.queue[eventName] = [];
       }
       global.BlockchainCallbackListInnerOnce.queue[eventName]
         .push(funcCallback);
     } else {
       if (!global.BlockchainCallbackListInnerOnce.pool
-          .hasOwnProperty(eventName)) {
+        .hasOwnProperty(eventName)) {
         global.BlockchainCallbackListInnerOnce.pool[eventName] = [];
       }
       global.BlockchainCallbackListInnerOnce.pool[eventName].push(funcCallback);
@@ -653,7 +711,7 @@ function initNodeConsole() {
   if (nodeConsole === null) {
     let cb = undefined;
     let reqQueue = [];
-    evtAddInner(errorUtil.EVENTS.NODE_CONSOLE_REQUEST, (args)=>{
+    evtAddInner(errorUtil.EVENTS.NODE_CONSOLE_REQUEST, (args) => {
       reqQueue.push(args);
       if (cb === null && reqQueue.length > 0) {
         let tmp = reqQueue.shift();
@@ -662,10 +720,10 @@ function initNodeConsole() {
       }
     });
     nodeConsole = spawn(conf.account.sync_node_path, ['--console-with-cmd']);
-    nodeConsole.on('error', (err)=>{
+    nodeConsole.on('error', (err) => {
       dealError(err);
     });
-    nodeConsole.stdout.on('data', (data)=>{
+    nodeConsole.stdout.on('data', (data) => {
       if (cb === undefined) {
         cb = null;
       } else {
@@ -696,19 +754,19 @@ function initNodeConsole() {
  * @return {object}
  */
 function queryNodeConsole(arrayParams) {
-  return new Promise((rs, rj)=>{
+  return new Promise((rs, rj) => {
     trigger(errorUtil.EVENTS.NODE_CONSOLE_REQUEST, {
-      'request': arrayParams.map((ele)=>{
+      'request': arrayParams.map((ele) => {
         if (typeof ele === 'string') {
           return Buffer.from(ele).toString('hex');
         } else {
           return '';
         }
       }).join(' '),
-      'callback': (data)=>{
+      'callback': (data) => {
         return rs(data);
       },
-      'error': (err)=>{
+      'error': (err) => {
         return rj();
       },
     });
@@ -726,8 +784,7 @@ async function getInfo(type, data) {
   switch (type) {
     case 'sign-data':
       if (conf.account.account_method === 'exec') {
-        let t = spawnSync(conf.account.sync_node_path,
-          ['--sign-data'].concat(data)); // privateKey, blob
+        let t = spawnSync(conf.account.sync_node_path, ['--sign-data'].concat(data)); // privateKey, blob
         if (t.status === null) {
           (commonUtil.packageError(constUtil.ERRORS.ERR_EXE));
           return undefined;
@@ -751,8 +808,7 @@ async function getInfo(type, data) {
       break;
     case 'check-address':
       if (conf.account.account_method === 'exec') {
-        let t = spawnSync(conf.account.sync_node_path,
-          ['--check-address'].concat(data)); // address
+        let t = spawnSync(conf.account.sync_node_path, ['--check-address'].concat(data)); // address
         if (t.status === null) {
           (commonUtil.packageError(constUtil.ERRORS.ERR_EXE));
           return undefined;
@@ -773,8 +829,7 @@ async function getInfo(type, data) {
       break;
     case 'create-account':
       if (conf.account.account_method === 'exec') {
-        let t = spawnSync(conf.account.sync_node_path,
-          ['--create-account', 'ed25519']);
+        let t = spawnSync(conf.account.sync_node_path, ['--create-account', 'ed25519']);
         if (t.status === null) {
           (commonUtil.packageError(constUtil.ERRORS.ERR_EXE));
           return undefined;
@@ -798,8 +853,7 @@ async function getInfo(type, data) {
       break;
     case 'check-signed-data':
       if (conf.account.account_method === 'exec') {
-        let t = spawnSync(conf.account.sync_node_path,
-          ['--check-signed-data'].concat(data)); // blob, sign_data, public_key
+        let t = spawnSync(conf.account.sync_node_path, ['--check-signed-data'].concat(data)); // blob, sign_data, public_key
         if (t.status === null) {
           (commonUtil.packageError(constUtil.ERRORS.ERR_EXE));
           return undefined;
@@ -819,8 +873,7 @@ async function getInfo(type, data) {
       break;
     case 'get-address-from-pubkey':
       if (conf.account.account_method === 'exec') {
-        let t = spawnSync(conf.account.sync_node_path,
-          ['--get-address-from-pubkey'].concat(data)); // public_key
+        let t = spawnSync(conf.account.sync_node_path, ['--get-address-from-pubkey'].concat(data)); // public_key
         if (t.status === null) {
           (commonUtil.packageError(constUtil.ERRORS.ERR_EXE));
           return undefined;
@@ -844,8 +897,7 @@ async function getInfo(type, data) {
       break;
     case 'get-privatekey-from-keystore':
       if (conf.account.account_method === 'exec') {
-        let t = spawnSync(conf.account.sync_node_path,
-          ['--get-privatekey-from-keystore'].concat(data)); // keystore, pwd
+        let t = spawnSync(conf.account.sync_node_path, ['--get-privatekey-from-keystore'].concat(data)); // keystore, pwd
         if (t.status === null) {
           (commonUtil.packageError(constUtil.ERRORS.ERR_EXE));
           return undefined;
@@ -869,8 +921,7 @@ async function getInfo(type, data) {
       break;
     case 'create-keystore-from-privatekey':
       if (conf.account.account_method === 'exec') {
-        let t = spawnSync(conf.account.sync_node_path,
-          ['--create-keystore-from-privatekey'].concat(data)); // privKey, pwd
+        let t = spawnSync(conf.account.sync_node_path, ['--create-keystore-from-privatekey'].concat(data)); // privKey, pwd
         if (t.status === null) {
           (commonUtil.packageError(constUtil.ERRORS.ERR_EXE));
           return undefined;
@@ -894,8 +945,7 @@ async function getInfo(type, data) {
       break;
     case 'sign-data-with-keystore':
       if (conf.account.account_method === 'exec') {
-        let t = spawnSync(conf.account.sync_node_path,
-          ['--sign-data-with-keystore'].concat(data));
+        let t = spawnSync(conf.account.sync_node_path, ['--sign-data-with-keystore'].concat(data));
         if (t.status === null) {
           (commonUtil.packageError(constUtil.ERRORS.ERR_EXE));
           return undefined;
@@ -919,8 +969,7 @@ async function getInfo(type, data) {
       break;
     case 'create-keystore':
       if (conf.account.account_method === 'exec') {
-        let t = spawnSync(conf.account.sync_node_path,
-          ['--create-keystore', data[0]]);
+        let t = spawnSync(conf.account.sync_node_path, ['--create-keystore', data[0]]);
         if (t.status === null) {
           (commonUtil.packageError(constUtil.ERRORS.ERR_EXE));
           return undefined;
@@ -944,8 +993,7 @@ async function getInfo(type, data) {
       break;
     case 'check-keystore-valid':
       if (conf.account.account_method === 'exec') {
-        let t = spawnSync(conf.account.sync_node_path,
-          ['--check-keystore'].concat(data));
+        let t = spawnSync(conf.account.sync_node_path, ['--check-keystore'].concat(data));
         if (t.status === null) {
           (commonUtil.packageError(constUtil.ERRORS.ERR_EXE));
           return undefined;

@@ -21,13 +21,13 @@
                 <i v-show="currentLang === 'en'" 
                   class="iconfont current-lang-right">&#xe672;</i>
               </div>
-              <div class="toggle-lang-btn" 
+              <!-- <div class="toggle-lang-btn" 
                   @click="changeLangEvent('ct')"
                   :class="currentLang === 'ct' ? 'toggle-lang-btn-active' : ''">
                 繁體中文
                 <i v-show="currentLang === 'ct'" 
                   class="iconfont current-lang-right">&#xe672;</i>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>

@@ -17,6 +17,9 @@
               <li @click="clickNav('index')" :class="getActiveHeaderNav === 'index' ? 'active' : ''">
                 <a href="#/index"><i class="iconfont icon-shouye"></i>{{$t('header.nav.home')}}</a>
               </li>
+              <li @click="clickNav('token')" :class="getActiveHeaderNav === 'token' ? 'active' : ''">
+                <a href="#/token"><i class="iconfont icon-token"></i>{{$t('header.nav.token')}}</a>
+              </li>
               <li @click="clickNav('tx')" :class="getActiveHeaderNav === 'tx' ? 'active' : ''">
                 <a href="#/tx"><i class="iconfont icon-zhuanzhang"></i>{{$t('header.nav.send')}}</a>
               </li>

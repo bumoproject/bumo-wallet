@@ -157,6 +157,7 @@ export default {
   'header': {
     'nav': {
       'home': '首頁',
+      'token': 'Token',
       'send': '轉賬',
       'outlineSignTx': '離線簽名交易',
       'uniteAccountTx': '聯名賬戶交易',
@@ -219,9 +220,64 @@ export default {
       }
     }
   },
+  'token': {
+    'content': {
+      'overallBalance': {
+        'title': '余額',
+        'accountAddress': '賬戶地址',
+        'copyBtn': '復制',
+        'copyTip': '雙擊可復制賬戶地址',
+        'unsyncBlock': '區塊同步中，余額暫時無法獲取'
+      },
+      'txStatus': {
+        'success': '交易成功',
+        'processing': '處理中',
+        'balanceNotEnougn': '余額不足',
+        'feeNotEnoughActiveAccount': '激活目標賬戶費用不足',
+        'timeOut': '交易超時',
+        'fail': '失敗'
+      },
+      'latestLocalTxRecord': {
+        'title': '最新本地交易記錄',
+        'explain': '僅顯示從P2P網絡收到的活躍交易記錄。如</br>需查詢賬戶全部歷史交易，請訪問區塊鏈瀏</br>覽器（explorer.bumo.io）',
+        'noData': '您還沒有本地交易記錄',
+        'sendToken': '轉賬',
+        'tableHeader': {
+          'status': '狀態',
+          'time': '時間',
+          'srcAddr': '付款賬戶地址',
+          'destAddr': '收款賬戶地址',
+          'num': '數量'
+        },
+        'pagination': {
+          'total': '共',
+          'unit': '頁',
+          'content': '條'
+        },
+        'dialog': {
+          'title': '交易詳情',
+          'hash': '交易哈希',
+          'time': '時間',
+          'txStatus': '狀態',
+          'srcAddr': '付款賬戶地址',
+          'destAddr': '收款賬戶地址',
+          'amount': '轉賬數量',
+          'actualFee': '交易費',
+          'actualFeeComputing': '計算中',
+          'note': '備註',
+          'noNote': '暫無備註',
+          'close': '關閉'
+        }
+      }
+    }
+  },
   'send': {
     'noSyncBlock': '區塊同步中，無法轉賬',
     'form': {
+      'currentTokenType': {
+        'label': '資產類型',
+        'placeholder': '请选择'
+      },
       'destAddr': {
         'label': '收款賬戶地址',
         'placeholder': '以bu開頭的區塊鏈賬戶地址'
@@ -589,6 +645,7 @@ export default {
     }
   },
   'error': {
+    'currentTokenType': '請選擇token',
     'walletPwdEmpty': '錢包密碼不能為空',
     'walletName': {
       'empty': '請選擇賬戶名',
@@ -645,7 +702,8 @@ export default {
       'moreThanAvailable': '不可超過可用數量',
       'notNum': '轉賬數量應為數字',
       'numTooBig': '數量過大！',
-      'numLimit': '轉賬數量應大於0,最多支持小數點後8位'
+      'numLimit': '轉賬數量應大於0,最多支持小數點後8位',
+      'tokenNum': '轉賬數量應為正整數'
     },
     'fee': {
       'empty': '交易費用不能為空',

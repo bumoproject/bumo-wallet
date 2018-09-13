@@ -54,7 +54,7 @@ export default {
       var _blockStatus = this.$store.state.blockStatus
       var _blockConnectionSize = this.$store.state.blockConnectionSize
       var connectionSize = _blockConnectionSize
-      var blockSeqUpdatePercent = Math.floor(tools.percentage(_blockStatus.seq, _blockStatus.seqMax))
+      var blockSeqUpdatePercent = tools.percentage(_blockStatus.seq, _blockStatus.seqMax)
       if (_blockStatus.seqMax === 0) {
         blockSeqUpdatePercent = 0
       } else {

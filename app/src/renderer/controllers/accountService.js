@@ -44,6 +44,34 @@ export default {
       resolve(respData)
     })
   },
+  getTokenList (opts) {
+    var respData = {
+      errCode: 0,
+      msg: 'success',
+      data: {
+        page: {
+          total: 3
+        },
+        tokens: [
+          {
+            assetCode: 'LTC',
+            icon: '...',
+            type: '1',
+            issuerAddress: ''
+          }
+        ]
+      }
+    }
+    return new Promise((resolve, reject) => {
+      bSdk.tx.getTokenType().then(respTokenListData => {
+        if (errorUtil.ERRORS.SUCCESS.CODE === respTokenListData.errCode) {
+          respData.data = respTokenListData.data
+//        console.log(respTokenListData)
+        }
+        resolve(respData)
+      })
+    })
+  },
   loadWalletTokenAndRecentTxs (opts) {
     var respData = {
       errCode: 0,
@@ -68,7 +96,7 @@ export default {
         }
       })
       bSdk.account.getAccountTokenBalance(reqWalletAccountTokenBalanceOpts).then(respGetAccountTokenBalanceData => {
-        console.log('getAccountTokenBalance: ' + JSON.stringify(respGetAccountTokenBalanceData))
+        // console.log('getAccountTokenBalance: ' + JSON.stringify(respGetAccountTokenBalanceData))
         if (errorUtil.ERRORS.SUCCESS.CODE === respGetAccountTokenBalanceData.errCode) {
           respData.data.tokenBalance = tools.commafy(respGetAccountTokenBalanceData.data.amount)
           respData.data.tokenReserve = tools.commafy(respGetAccountTokenBalanceData.data.reserve)

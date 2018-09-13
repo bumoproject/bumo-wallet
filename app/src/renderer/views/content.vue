@@ -1,6 +1,6 @@
 <template>
   <section>
-    <div class="page-content">
+    <div class="page-content index-cont">
       <div id="pageLoading" ref="dataLoading">
         <div class="spinner">
         <div class="rect2"></div>
@@ -264,7 +264,9 @@ export default {
 </script>
 <style lang="less">
 .page-content{overflow: hidden;padding-top: 21px;}
-.asset-panel{background-color: #fff;padding-bottom: 20px;margin-bottom: 19px; position: relative;border-bottom:1px solid #F2F2F2;}
+.index-cont{
+&.page-content{overflow: hidden;padding-top: 21px;}
+.asset-panel{background-color: #fff;padding-bottom: 20px; position: relative;border-bottom:1px solid #F2F2F2;}
 .asset-panel p{color: #999999;font-size: 12px;padding-bottom: 6px;}
 .asset-panel p i{padding-left: 5px;font-size: 13px;}
 .asset-panel b.banlace{font-size: 28px;font-weight: normal;display: block;position:relative;}
@@ -275,8 +277,8 @@ export default {
 .recent-txs{background-color: #ffffff;padding-bottom: 5px;width: 960px;}
 .recent-txs .tx-status{display: inline-block;position: absolute;top: 0;left: 40px;}
 .txs-header-box{padding: 20px 0;}
-.recent-txs .txs-header-box {position: relative; padding: 0;height: 20px;line-height: 12px;}
-.recent-txs .recent-local-txs-explain .ivu-tooltip-popper {top: -8px !important;}
+.recent-txs .txs-header-box {position: relative; padding: 0;height: 39px;line-height: 39px;}
+.recent-txs .recent-local-txs-explain .ivu-tooltip-popper {top: 4px !important;}
 .recent-txs .recent-local-txs-explain i{color: #999;padding-left: 3px;}
 .txs-header-box label{color: #999;float: left;font-size: 12px;}
 .txs-header-box span{display: inline-block;position: absolute;right: 20px;top: 14px;border-radius: 4px;width: 60px;height: 24px;line-height: 24px;border: 1px solid #00D080;color: #00D080;cursor: pointer;font-size: 12px;text-align: center;}
@@ -308,20 +310,6 @@ export default {
 .table-body dd.amount{text-align: right;text-align: center;}
 .table-body .type-out{color: #FF8024;}
 .table-body .type-in{color: #00D080;}
-.show-tx-detail-wraper{position: relative;}
-.ivu-modal-body{position: relative;}
-.ivu-modal-body .tx-status{position: absolute;right: 50%;top: 0px}
-.tx-status i{font-size: 16px;}
-.show-tx-detail-wraper{padding-top: 5px;padding-bottom: 5px;}
-.show-tx-detail-wraper p{padding: 5px 0;display: flex;}
-.show-tx-detail-wraper p label{width: 150px;display: block;text-align: right;}
-.show-tx-detail-wraper span{padding-left: 15px;display: block;}
-.show-tx-detail-wraper span.address-mark{font-weight: 600;}
-.show-tx-detail-wraper b{padding-left: 15px;display: inline-block;}
-.icon-jindutiaochulizhong {color: #FF8024}
-.ivu-page .ivu-page-simple{text-align: center;padding-top: 20px;}
-.ivu-page-simple .ivu-page-simple-pager{display: none;}
-.show-tx-detail-wraper span.tx-note{display: block;padding-left: 165px;margin-top: -19px;float: inherit;word-break: break-all;}
 .icon-chenggong1 {color: #00D080}
 .icon-jinhangzhong {color: #999999}
 .icon-shibai1{color: #FF8024;}
@@ -391,4 +379,19 @@ export default {
   text-align: center;
   cursor: pointer;
 }
+}
+.show-tx-detail-wraper{position: relative;}
+.ivu-modal-body{position: relative;}
+.ivu-modal-body .tx-status{position: absolute;right: 50%;top: 0px}
+.tx-status i{font-size: 16px;}
+.show-tx-detail-wraper{padding-top: 5px;padding-bottom: 5px;}
+.show-tx-detail-wraper p{padding: 5px 0;display: flex;}
+.show-tx-detail-wraper p label{min-width: 150px;display: block;text-align: right;}
+.show-tx-detail-wraper span{padding-left: 15px;display: block;}
+.show-tx-detail-wraper span.address-mark{font-weight: 600;}
+.show-tx-detail-wraper b{padding-left: 15px;display: inline-block;}
+.icon-jindutiaochulizhong {color: #FF8024}
+.ivu-page .ivu-page-simple{text-align: center;padding-top: 20px;}
+.ivu-page-simple .ivu-page-simple-pager{display: none;}
+.show-tx-detail-wraper span.tx-note{float: inherit;word-break: break-all;}
 </style>

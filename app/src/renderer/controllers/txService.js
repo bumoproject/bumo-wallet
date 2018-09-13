@@ -1,6 +1,7 @@
 import bSdk from '../extend/blockchain-sdk'
 import errorUtil from '../constants'
 import baseService from '../controllers/baseService'
+import tool from '../utils/tools'
 export default {
   sendToken (opts) {
     var respData = {
@@ -49,6 +50,81 @@ export default {
       })
     })
   },
+  sendAsset (opts) {
+    var respData = {
+      errCode: 0,
+      msg: 'success',
+      data: {
+        hash: ''
+      }
+    }
+    return new Promise((resolve, reject) => {
+      var gasPrice = null
+      var fee = null
+      var balanceI = null
+      baseService.getSendTokenGasPrice(opts.walletAddress, opts.destAddr, opts.sentAssetAmount, opts.note, opts.fee).then(respSendTokenGasPriceData => {
+        gasPrice = respSendTokenGasPriceData
+        console.log('gasPrice1: ' + gasPrice)
+        var operation = []
+        if (opts.accountUnactive) {
+          if (tool.bigNumMinus(opts.fee, 0.11) <= 0) {
+            balanceI = 0
+          } else {
+            balanceI = 0.11
+          }
+          operation.push({
+            type: 'create',
+            params: {
+              destAddress: opts.destAddr, balanceInit: balanceI + ''
+            }
+          })
+          fee = tool.bigNumMinus(opts.fee, balanceI) + ''
+        } else {
+          fee = opts.fee + ''
+        }
+        operation.push({
+          type: 'payasset',
+          params: {
+            destAddress: opts.destAddr,
+            amount: opts.sentAssetAmount,
+            issuer: opts.issuer,
+            code: opts.code
+          }
+        })
+        var sendTokenReqOpts = {
+          type: 'deal',
+          accountNick: opts.walletNick,
+          srcAddress: opts.walletAddress,
+          note: opts.note,
+          feeLimit: fee,
+          gasPrice: gasPrice,
+          pwd: opts.accountPwd,
+          ops: operation
+        }
+        console.info('bumo wallet sendToken.req: ' + JSON.stringify(sendTokenReqOpts))
+        bSdk.tx.transaction(sendTokenReqOpts).then(sendTokenRespData => {
+          console.log('bumo wallet sendToken.resp: ' + JSON.stringify(sendTokenRespData))
+          if (errorUtil.ERRORS.SUCCESS.CODE === sendTokenRespData.errCode) {
+            respData.data.hash = sendTokenRespData.data.hash
+          } else if (errorUtil.ACCOUNT_STATE.INVALID_ACCOUNT_PWD === sendTokenRespData.errCode) {
+            respData.errCode = errorUtil.ERRORS.INVALID_ACCOUNT_PWD.CODE
+            respData.msg = 'errorUtil.ERRORS.INVALID_ACCOUNT_PWD'
+            console.error('sent token fail ' + sendTokenRespData.msg)
+          } else if (errorUtil.BUMO_ERROR.NOT_ENOUGH_TX_FEE === sendTokenRespData.errCode) {
+            respData.errCode = errorUtil.ERRORS.NOT_ENOUGH_TX_FEE_ERROR.CODE
+            respData.msg = 'errorUtil.ERRORS.NOT_ENOUGH_TX_FEE_ERROR'
+          } else if (errorUtil.BUMO_ERROR.ACCOUNT_LOW_RESERVE === sendTokenRespData.errCode) {
+            respData.errCode = errorUtil.ERRORS.ACCOUNT_LOW_RESERVE_ERROR.CODE
+            respData.msg = 'errorUtil.ERRORS.ACCOUNT_LOW_RESERVE_ERROR'
+          } else {
+            respData.errCode = errorUtil.ERRORS.SUBMIT_TX_ERROR.CODE
+            respData.msg = 'errorUtil.ERRORS.SUBMIT_TX_ERROR'
+          }
+          resolve(respData)
+        })
+      })
+    })
+  },
   getTxList (opts) {
     var respData = {
       errCode: 0,
@@ -64,9 +140,56 @@ export default {
         pageSize: opts.pageSize
       }
       bSdk.tx.getTxsList(getAccountTxListReqOpts).then(respGetAccountTxlistData => {
-        console.log('bumo wallet respGetAccountTxlistData' + JSON.stringify(respGetAccountTxlistData))
+        // console.log('bumo wallet respGetAccountTxlistData' + JSON.stringify(respGetAccountTxlistData))
         if (errorUtil.ERRORS.SUCCESS.CODE === respGetAccountTxlistData.errCode) {
           respData.data = respGetAccountTxlistData.data
+        }
+        resolve(respData)
+      })
+    })
+  },
+  getActiveTokenBalance (opts) {
+    var respData = {
+      errCode: 0,
+      msg: 'success',
+      data: {
+        tokenBalance: 0
+      }
+    }
+    return new Promise((resolve, reject) => {
+      var reqWalletAccountTokenBalanceOpts = {
+        address: opts.walletAddress,
+        assetCode: opts.assetCode,
+        issuerAddress: opts.issuerAddress
+      }
+      bSdk.tx.getTokenBalance(reqWalletAccountTokenBalanceOpts).then(respGetAccountTokenBalanceData => {
+        if (errorUtil.ERRORS.SUCCESS.CODE === respGetAccountTokenBalanceData.errCode) {
+          respData.data.tokenBalance = respGetAccountTokenBalanceData.data.amount
+        }
+        resolve(respData)
+      })
+    })
+  },
+  getTokenTxList (opts) {
+    var respData = {
+      errCode: 0,
+      msg: 'success',
+      data: {
+        tx: {total: 0},
+        txs: []
+      }
+    }
+    return new Promise((resolve, reject) => {
+      var getAccountTxListReqOpts = {
+        pageStartIndex: opts.pageStartIndex,
+        pageSize: opts.pageSize,
+        assetCode: opts.assetCode,
+        issuerAddress: opts.issuerAddress
+      }
+      bSdk.tx.getTokenList(getAccountTxListReqOpts).then(respGetTokenlistData => {
+//      console.log('bumo wallet respGetTokenlistData' + JSON.stringify(respGetTokenlistData))
+        if (errorUtil.ERRORS.SUCCESS.CODE === respGetTokenlistData.errCode) {
+          respData.data = respGetTokenlistData.data
         }
         resolve(respData)
       })
@@ -99,7 +222,7 @@ export default {
       var getBLockChainConnectCountReqOpts = {
         eventName: 'peer_connections',
         callback: function (respGetBLockChainConnectCountData) {
-          console.log('bumo wallet respGetBLockChainConnectCountData: ' + JSON.stringify(respGetBLockChainConnectCountData))
+          // console.log('bumo wallet respGetBLockChainConnectCountData: ' + JSON.stringify(respGetBLockChainConnectCountData))
           respData.data.blockConnectionSize = respGetBLockChainConnectCountData.connectionSize
           store.commit('BLOCK_CONNETCTION_SIZE', respData.data.blockConnectionSize)
           resolve(respData)

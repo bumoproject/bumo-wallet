@@ -92,6 +92,7 @@
   import accountService from '../../controllers/accountService'
   import errorUtil from '../../constants'
   import config from '../../../config'
+  import tools from '../../utils/tools'
   export default {
     name: 'buildTx',
     props: {
@@ -110,7 +111,12 @@
       syncProgress () {
         var _blockStatus = this.$store.state.blockStatus
         if (_blockStatus.seqMax) {
-          return (Math.floor((_blockStatus.seq / _blockStatus.seqMax) * 100)) + '%'
+          var blockSeqUpdatePercent = tools.percentage(_blockStatus.seq, _blockStatus.seqMax)
+          if (_blockStatus.seqMax === 0) {
+            return '0%'
+          } else {
+            return blockSeqUpdatePercent + '%'
+          }
         } else {
           return this.$t('common.computing')
         }

@@ -17,10 +17,14 @@ import {Buffer} from 'buffer';
 tx.setCallback({
     'eventName': 'error', 'callback': function(data) {
         console.log('event error');
-        let t = JSON.parse(data.message);
-        if (t.hasOwnProperty('stack')) {
-            console.log(t.stack);
-        } else {
+        try{
+            let t = JSON.parse(data.message);
+            if (t.hasOwnProperty('stack')) {
+                console.log(t.stack);
+            } else {
+                console.log(data);
+            }
+        } catch(err) {
             console.log(data);
         }
     },
@@ -31,18 +35,18 @@ tx.setCallback({
         console.log(data);
     },
 });
-// tx.setCallback({
-//     'eventName': 'tx_status_comp', 'callback': function(data) {
-//         console.log('event tx_status_comp');
-//         console.log(JSON.stringify(data));
-//     },
-// });
-// tx.setCallback({
-//     'eventName': 'tx_status_fail', 'callback': function(data) {
-//         console.log('event tx_status_fail');
-//         console.log(JSON.stringify(data));
-//     },
-// });
+tx.setCallback({
+    'eventName': 'tx_status_comp', 'callback': function(data) {
+        console.log('event tx_status_comp');
+        console.log(JSON.stringify(data));
+    },
+});
+tx.setCallback({
+    'eventName': 'tx_status_fail', 'callback': function(data) {
+        console.log('event tx_status_fail');
+        console.log(JSON.stringify(data));
+    },
+});
 // tx.setCallback({'eventName': 'ws_recv', 'callback': function(data) {
 //     console.log('event ws_recv');
 //     console.log(data);
@@ -105,12 +109,13 @@ async function RunAccountTest() {
  *
 */
 async function RunHistoryTest() {
-    data = await account.login({'accountNick': 'ImportStr', 'pwd': '123456'});
+    data = await account.login({'accountNick': 'tAccount', 'pwd': '123456'});
     try {
         data = await tx.getTxsList({
             'pageStartIndex': 0,
             'pageSize': 5});
         console.log(data);
+        console.log(data.data.txs);
     } catch (err) {
         console.log(err);
     }
@@ -140,43 +145,16 @@ async function RunOperationTest() {
         // });
         // console.log(data);
 
-        // data = await tx.sendToken({
-        //     accountNick: 'tAccount',
-        //     pwd: '123456',
-        //     srcAddress: 'buQs9npaCq9mNFZG18qu88ZcmXYqd6bqpTU3',
-        //     destAddress: 'buQobZLmF73YH5tzkiTyL57XMguvPJUCQd6G',
-        //     amount: '18',
-        //     fee: '0.1',
-        //     note: '测试b备注',
-        // });
-        // console.log(data);
-        return;
-        
-        setInterval(async ()=>{
-            data = await tx.getTxsList({
-                'pageStartIndex': 0,
-                'pageSize': 2});
-            if (data.data.txs.length > 0) {
-                console.log(data.data.tx);
-                console.log(data.data.txs);
-            } else {
-                console.log(data);
-            }
-        }, 1000);
-        return;
-
-        setTimeout(async ()=>{
-            data = await tx.getTxsList({
-                "pageStartIndex": 0,
-                "pageSize": 5
-            });
-            if (data.data.txs.length > 0) {
-                console.log(data.data.tx);
-                console.log(data.data.txs);
-            } else {
-                console.log(data);
-            }
-        }, 10000);
+        data = await tx.sendToken({
+            'accountNick': 'tAccount',
+            'pwd': '123456',
+            'srcAddress': 'buQs9npaCq9mNFZG18qu88ZcmXYqd6bqpTU3',
+            'destAddress': 'buQBuBgDu3XWqC5JeDxqXtQMBw9EMvegneHB',
+            'amount': '18',
+            'feeLimit': '0.1',
+            'gasPrice': '1000',
+        });
+        console.log(data);
 
         // data = await tx.getTxsList({
         //     'pageStartIndex': 0,
@@ -196,75 +174,150 @@ async function RunUniteTransaction() {
     console.log(data);
     try {
         // data = await tx.transaction({
-        //     "type": "blob",
-        //     "srcAddress": "buQs9npaCq9mNFZG18qu88ZcmXYqd6bqpTU3",
-        //     //"privateKey": "privbvYfqQyG3kZyHE4RX4TYVa32htw8xG4WdpCTrymPUJQ923XkKVbM",
-        //     "accountNick": "ImportStr",
-        //     "pwd": "123456",
-        //     "fee": "0.5",
-        //     "note": "测试",
-        //     "ops": [
-        //         {
-        //             "type": "paycoin",
-        //             "params": {
-        //                 "destAddress": "buQnXQ3m2AFVTsMYwakyWZnS4Mivkpqc2VAj",
-        //                 "amount": "0.5"
-        //             }
-        //         }
-        //     ]
-        // })
+        //     'type': 'fee',
+        //     'srcAddress': 'buQs9npaCq9mNFZG18qu88ZcmXYqd6bqpTU3',
+        //     'feeLimit': '1',
+        //     'gasPrice': '1000',
+        //     'ops': [{
+        //         'type': 'metadata',
+        //         'params': {
+        //             'key': 'TestMD',
+        //             'value': 'r'},
+        //         },
+        //     ]});
+        // console.log(data);
 
-        data = await tx.transaction({
-            'type': 'fee',
-            'fee': '0',
-            'srcAddress': 'buQs9npaCq9mNFZG18qu88ZcmXYqd6bqpTU3',
-            'ops': [{
-                'type': 'metadata',
-                'params': {
-                    'key': 'TestMD',
-                    'value': '20',
-                    'version': 3},
-                },
-            ]});
-        console.log(data);
+        // data = await tx.transaction({
+        //     'type': 'blob',
+        //     'srcAddress': 'buQs9npaCq9mNFZG18qu88ZcmXYqd6bqpTU3',
+        //     'feeLimit': '1',
+        //     'gasPrice': '1000',
+        //     'ops': [{
+        //         'type': 'signers',
+        //         'params': {
+        //             'signers': [{
+        //                 'address': 'buQk28Z6e7rU6FRjy4tteyMsffzZ9Hu6ZboM',
+        //                 'weight': 1,
+        //             }, {
+        //                 'address': 'buQsGoxroMk1P9T8D2yByrukHeY2RTemcYjj',
+        //                 'weight': 1,
+        //             }],
+        //         },
+        //     }],
+        // });
+        // console.log(data);
+
+        // data = await tx.transaction({
+        //     'type': 'blob',
+        //     'srcAddress': 'buQs9npaCq9mNFZG18qu88ZcmXYqd6bqpTU3',
+        //     'feeLimit': '1',
+        //     'gasPrice': '1000',
+        //     'note': '测试a',
+        //     'ops': [{
+        //         'type': 'metadata',
+        //         'params': {
+        //             'key': 'TestMD',
+        //             'value': 'r'},
+        //         },
+        //     ]});
+        // console.log(data);
 
         data = await tx.transaction({
             'type': 'blob',
             'srcAddress': 'buQs9npaCq9mNFZG18qu88ZcmXYqd6bqpTU3',
-            'fee': '0.1',
-            'ops': [{
-                'type': 'metadata',
-                'params': {
-                    'key': 'TestMD',
-                    'value': '20',
-                    'version': 3},
-                },
+            'feeLimit': '15',
+            'gasPrice': '1000',
+            'ops': [
+                {
+                    'type': 'create',
+                    'params': {
+                        'destAddress': 'buQXAKjDm2eJatrtrZsbn59xXa2pGTXWx7NN',
+                        'balanceInit': '0.15',
+                        // 'contract': 'function init() { "use strict"; let a = ""; a = "123"; } function main() { "use strict"; let a = ""; a = "123";  }',
+                    }},
+                {
+                    'type': 'privilege',
+                    'params': {
+                        'srcAddress': 'buQXAKjDm2eJatrtrZsbn59xXa2pGTXWx7NN',
+                        'masterWeight': '5',
+                        'txThreshold': '5',
+                        'signers': [
+                            {
+                                'address': 'buQs9npaCq9mNFZG18qu88ZcmXYqd6bqpTU3',
+                                'weight': 2,
+                            }
+                        ],
+                        'typeThresholds': [{
+                            'type': 1,
+                            'threshold': 2,
+                        }],
+                    }},
             ]});
         console.log(data);
 
+        // data = await tx.transaction({
+        //     'type': 'blob',
+        //     'srcAddress': 'buQoJda6nmr5EijEy2bGo7uytwjbJ1JZmT3u',
+        //     'feeLimit': '0.01',
+        //     'gasPrice': '1000',
+        //     'ops': [{
+        //         'type': 'create',
+        //         'params': {
+        //             'destAddress': 'buQqdUs951EDSku6fYjqBKXt5weswTqgnrMp',
+        //             'balanceInit': '0.1',
+        //             // 'weight': 0,
+        //             // 'threshold': {'tx': 1},
+        //             // 'contract': 'function init() { "use strict"; let a = ""; a = "123"; } function main() { "use strict"; let a = ""; a = "123";  }',
+        //         }},
+        //     ]});
+        // console.log(data);
+
+        // data = await tx.transaction({
+        //     'type': 'blob',
+        //     'srcAddress': 'buQs9npaCq9mNFZG18qu88ZcmXYqd6bqpTU3',
+        //     'feeLimit': '1',
+        //     'gasPrice': '1000',
+        //     'ops': [{
+        //         'type': 'paycoin',
+        //         'params': {
+        //             'destAddress': 'buQBuBgDu3XWqC5JeDxqXtQMBw9EMvegneHB',
+        //             'amount': '12'},
+        //         },
+        //     ]});
+        // console.log(data);
+
+        // data = await tx.transaction({
+        //     'type': 'blob',
+        //     'srcAddress': 'buQk28Z6e7rU6FRjy4tteyMsffzZ9Hu6ZboM',
+        //     'feeLimit': '3',
+        //     'gasPrice': '1000',
+        //     'ops': [{
+        //         'type': 'issue',
+        //         'params': {
+        //             'code': 'code',
+        //             'amount': '100'
+        //         }}
+        //     ]});
+        // console.log(data);
+
         data = await tx.transactionSign({
             'transactionString': data.data.transactionString,
-            'accountNick': 'tAccount',
+            // 'privateKey': 'privbtNgwMpvor3bpdcqYwew7x5p53Ct1cKX4FVApFYjEpLzskJ82owJ',
+            'accountNick': 'tAccount', // 'aTest',
             'pwd': '123456',
         });
         console.log(data);
 
-        data = await tx.transactionResolve({
+        data = await tx.transactionSign({
+            'transactionString': data.data.transactionString,
+            'privateKey': 'privbt7KPsx3Vfinn8YYMEJ5Njt57FdQHedaxcFZLh7nsumj2MyJzcyy',
+        });
+        console.log(data);
+
+        data = await tx.transactionSubmit({
             'transactionString': data.data.transactionString,
         });
-        console.log(data.data);
-
-        // data = await tx.transactionResolve({
-        //     'transactionString': 'asoiduflkasjdfiowuerlkjwalkejsadf',
-        // });
-        // console.log(JSON.stringify(data));
-
-        // let txStr = data.data.transactionString;
-
-            // data = await tx.transactionSubmit({
-            //     'transactionString': data.data.transactionString,
-            // });
-            // console.log(data);
+        console.log(data);
 
             // data = await tx.transactionSubmit({
             //     'transactionString': txStr,
@@ -363,13 +416,13 @@ async function TestCreatePublicAccount() {
         //     'type': 'fee',
         //     'srcAddress': 'buQqv99Gqx3hfTWNbLxkrmXSZY9WhyQyUaTq',
         //     'fee': '0.01',
-        //     'accountNick': '区块小荷包',
+        //     'accountNick': 'aaa',
         //     'pwd': '123456',
         //     'ops': [
         //         {
         //             'type': 'create',
         //             'params': {
-        //                 'destAddress': 'buQehq1QfkHGAgE6EmjMtp9TrEwQMT7xWzjo',
+        //                 'destAddress': 'buQdHqHrhY6y3CvZ5z2vAsg4VSJ2qndfedin',
         //                 'balanceInit': '0.1',
         //                 'threshold': {
         //                     'tx': '10',
@@ -383,27 +436,30 @@ async function TestCreatePublicAccount() {
         //     ],
         // });
 
-        // data = await tx.createAccount(
-        //     {
-        //         'srcAddress': 'buQs9npaCq9mNFZG18qu88ZcmXYqd6bqpTU3',
-        //         'fee': '0.01',
-        //         'accountNick': 'tAccount',
-        //         'pwd': '123456',
-        //         'balanceInit': '0.1',
-        //         'destAddress': 'buQdeXasjjSU8hjpErH4DfGctvhA8Jq9L7Ca',
-        //         'threshold': {
-        //             'tx': 10,
-        //         },
-        //         'signers': [
-        //             {'address': 'buQs9npaCq9mNFZG18qu88ZcmXYqd6bqpTU3', 'weight': 10},
-        //             {'address': 'buQezjPR7qPhimtPDQyqnhy59n7FJGJQKYXw', 'weight': 2},
-        //             {'address': 'buQczDezPeDwFjrV1A8rkMAUqku369SqdnRZ', 'weight': 8}],
-        //         'weight': 0,
-        //     });
-        // console.log(data);
+        data = await tx.createAccount(
+            {
+                'srcAddress': 'buQs9npaCq9mNFZG18qu88ZcmXYqd6bqpTU3',
+                'feeLimit': '0.1',
+                'gasPrice': '1000',
+                'accountNick': 'tAccount',
+                'pwd': '123456',
+                'privateKeyDest': 'privbxei97UuTa2GsSuoK4LEMTqudDSuCHYzSCCp8ciTZu73ddWRzuda',
+                'balanceInit': '0.1',
+                'destAddress': 'buQWN7SxZmGssFEivH5CFUSdtuUHhVWuwU7w',
+                'threshold': {
+                    'tx': 3,
+                    'paycoin': 5,
+                },
+                'signers': [
+                    {'address': 'buQs9npaCq9mNFZG18qu88ZcmXYqd6bqpTU3', 'weight': 10},
+                    {'address': 'buQezjPR7qPhimtPDQyqnhy59n7FJGJQKYXw', 'weight': 2},
+                    {'address': 'buQczDezPeDwFjrV1A8rkMAUqku369SqdnRZ', 'weight': 8}],
+                'weight': 3,
+            });
+        console.log(data);
 
-        data = await tx.getAccountList({'pageStartIndex': 5, 'pageSize': 5});
-        console.log((data.data));
+        // data = await tx.getAccountList({'pageStartIndex': 5, 'pageSize': 5});
+        console.log((data));
     } catch (err) {
         console.log(err);
     }
@@ -509,7 +565,19 @@ async function TestTxList() {
 // RunHistoryTest()
 // TestEvent()
 // unitConvertTest()
-// RunUniteTransaction()
+RunUniteTransaction()
+
+// data = await tx.transactionSign({
+//     'transactionString': data.data.transactionString,
+//     'accountNick': 'tAccount',
+//     'pwd': '123456',
+// });
+// console.log(data);
+
+// data = await tx.transactionResolve({
+//     'transactionString': data.data.transactionString,
+// });
+// console.log(data);
 
 // TestAddressCheck()
 
