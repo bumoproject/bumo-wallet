@@ -10,11 +10,11 @@
          :class="currentLang === 'cn' ? 'lang-active' : ''">
          简体中文
     </div>
-    <div class="lang"
+    <!-- <div class="lang"
          @click="handleLangItemClick('ct')"
          :class="currentLang === 'ct' ? 'lang-active' : ''">
          繁体中文
-    </div>
+    </div> -->
   </div>
 </template>
 <script>

@@ -157,6 +157,7 @@ export default {
   'header': {
     'nav': {
       'home': 'Home',
+      'token': 'Token',
       'send': 'Send',
       'outlineSignTx': 'Offline Signature Trans.',
       'uniteAccountTx': 'Joint-Account Trans.',
@@ -219,9 +220,65 @@ export default {
       }
     }
   },
+  'token': {
+    'content': {
+      'overallBalance': {
+        'title': 'Balance',
+        'accountAddress': 'Account Address',
+        'copyBtn': 'Copy',
+        'copyTip': 'Double-click to copy Account Address',
+        'unsyncBlock': 'Blocks Syncing, Searching Balance Later'
+      },
+      'txStatus': {
+        'success': 'Transaction Done',
+        'processing': 'Processing',
+        'balanceNotEnougn': 'Insufficient BU in Account',
+        'feeNotEnoughActiveAccount': 'Insufficient Fee for Activation',
+        'timeOut': 'Timeout',
+        'fail': 'Failed'
+      },
+      'latestLocalTxRecord': {
+        'title': 'Latest Local Transaction Records',
+        'explain': 'Show active transactions received from </br>peer-to-peer network only. For all historical </br>transactions of your account, please visit </br>explorer.bumo.io',
+        'noData': 'No Local Transaction Records yet',
+        'sendToken': 'Send',
+        'tableHeader': {
+          'status': 'Status',
+          'time': 'Transaction Time',
+          'srcAddr': 'From',
+          'destAddr': 'To',
+          'num': 'Value'
+        },
+        'pagination': {
+          'total': 'Total',
+          'unit': 'Page',
+          'content': 'Items'
+        },
+        'dialog': {
+          'title': 'Transaction Details',
+          'hash': 'Transaction Hash',
+          'time': 'Transaction Time',
+          'txStatus': 'Transaction Status',
+          'srcAddr': 'From',
+          'destAddr': 'To',
+          'amount': 'BU Value',
+          'actualFee': 'Fee',
+          'activationFee': 'Activation Fee',
+          'actualFeeComputing': 'Processing',
+          'note': 'Note',
+          'noNote': 'No Note yet',
+          'close': 'Close'
+        }
+      }
+    }
+  },
   'send': {
     'noSyncBlock': 'Syncing Blocks, transfer later',
     'form': {
+      'currentTokenType': {
+        'label': 'Asset Type',
+        'placeholder': 'Select'
+      },
       'destAddr': {
         'label': 'Receiver\'s Address',
         'placeholder': 'Account Address starts with \'bu\''
@@ -232,7 +289,7 @@ export default {
         'balance': 'Available Balance'
       },
       'fee': {
-        'label': 'Fee',
+        'label': 'Maximum Fee',
         'placeholder': 'Fill Fee'
       },
       'note': {
@@ -247,7 +304,7 @@ export default {
       'srcAddr': 'Sender\'s Address',
       'destAddr': 'Receiver\'s Address',
       'sentAssetAmount': 'Transfer Amount',
-      'fee': 'Fee',
+      'fee': 'Maximum Fee',
       'note': 'Note',
       'pwdPlaceholder': 'Wallet Password'
     }
@@ -271,7 +328,7 @@ export default {
           'balance': 'Available Balance'
         },
         'fee': {
-          'label': 'Fee'
+          'label': 'Maximum Fee'
         },
         'note': {
           'label': 'Note',
@@ -285,7 +342,7 @@ export default {
           'srcAddr': 'Sender\'s Address',
           'destAddr': 'Receiver\'s Address',
           'txAmount': 'Amount',
-          'fee': 'Fee',
+          'fee': 'Maximum Fee',
           'note': 'Note',
           'noNote': 'No Note yet'
         },
@@ -386,7 +443,7 @@ export default {
           'tips': 'Transfer done when signed Account Weight ≥Threshold Weight'
         },
         'fee': {
-          'label': 'Fee',
+          'label': 'Maximum Fee',
           'placeholder': '',
           'tips': 'Fee can be fixed when it is between 0.01-10, but no less than Wallet brokerage '
         },
@@ -451,7 +508,7 @@ export default {
           'balance': 'Available Balance'
         },
         'fee': {
-          'label': 'Fee'
+          'label': 'Maximum Fee'
         },
         'note': {
           'label': 'Note',
@@ -465,7 +522,7 @@ export default {
           'srcAddr': 'Sender\'s Address',
           'destAddr': 'Receiver\'s Address',
           'txAmount': 'Transfer Amount',
-          'fee': 'Fee',
+          'fee': 'Maximum Fee',
           'note': 'Note',
           'noNote': 'No Note yet'
         },
@@ -589,6 +646,7 @@ export default {
     }
   },
   'error': {
+    'currentTokenType': 'Please Choose Token',
     'walletPwdEmpty': 'Please Enter Password',
     'walletName': {
       'empty': 'Please Choose Account',
@@ -645,14 +703,16 @@ export default {
       'moreThanAvailable': 'Please within your Available Balance',
       'notNum': 'Amount should be numbers',
       'numTooBig': 'Over Transfer Limit',
-      'numLimit': 'Transfer Shall be more than 0, with a maximum of 8 decimal places'
+      'numLimit': 'Transfer Shall be more than 0, with a maximum of 8 decimal places',
+      'tokenNum': 'Amount should be positive integer'
     },
     'fee': {
       'empty': 'Fill in Transaction Fee',
       'lessThanZero': 'Fee ＞ 0',
       'numLimit': 'Fee Shall be more than 0, with a maximum of 8 decimals',
       'numTooBig': 'Over Fee Required',
-      'numBig': 'Fee (BU) shall be numbers that ≤ 10'
+      'numBig': 'Fee (BU) shall be numbers that ≤ 10',
+      'numSmall': 'Transaction fee is not sufficient'
     },
     'note': {
       'limit200': 'Within 200 characters'

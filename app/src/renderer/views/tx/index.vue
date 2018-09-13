@@ -1,4 +1,4 @@
-.send-asset-confirm-wraper span.tx-note<template>
+<template>
   <section>
     <div class="page-content tx-index">
       <div class="container">
@@ -7,14 +7,21 @@
                 :model="sendAssetData" 
                 :rules="ruleValidate" 
                 :label-width="210">
+            <FormItem :label="$t('send.form.currentTokenType.label')" prop="currentTokenType">
+              <Select @on-change="changeToken" v-model="sendAssetData.currentTokenType" style="width:450px;">
+                <Option v-for="(item, index) in tokenList" :value="item.assetCodeAndAddr">{{item.assetCode}}</Option>
+              </Select>
+            </FormItem>
             <FormItem :label="$t('send.form.destAddr.label')" prop="destAddr">
               <Input v-model.trim="sendAssetData.destAddr" :placeholder="$t('send.form.destAddr.placeholder')"></Input>
             </FormItem>
-            <FormItem :label="$t('send.form.sentAssetAmount.label') + '(BU)'" prop="sentAssetAmount" class="asset-send-amount">
+            
+            <FormItem :label="$t('send.form.sentAssetAmount.label') + '('+tokenUnit+')'" prop="sentAssetAmount" class="asset-send-amount">
               <Input v-model.trim="sendAssetData.sentAssetAmount" :placeholder="$t('send.form.sentAssetAmount.placeholder')"></Input>
-              <label class="available-asset-amount">{{$t('send.form.sentAssetAmount.balance')}}<span>{{availableAssetAmount}}BU</span></label>
+              <label class="available-asset-amount">{{$t('send.form.sentAssetAmount.balance')}}<span>{{availableAssetAmount}}{{tokenUnit}}</span></label>
             </FormItem>
-            <FormItem :label="$t('send.form.fee.label') + '(BU)'" prop="fee">
+                      
+            <FormItem :label="$t('send.form.fee.label') + '(BU)'" prop="fee" class="ivu-form-item-required">
               <Input v-model.trim="sendAssetData.fee" :placeholder="$t('send.form.fee.placeholder')"></Input>
             </FormItem>
             <FormItem :label="$t('send.form.note.label')" prop="note" class="tx-index-note">
@@ -53,7 +60,7 @@
             <div class="send-asset-confirm-wraper">
               <p><label>{{$t('send.dialog.srcAddr')}}</label><span>{{loginAccount.address}}</span></p>
               <p><label>{{$t('send.dialog.destAddr')}}</label><b>{{sendAssetData.destAddr}}</b></p>
-              <p><label>{{$t('send.dialog.sentAssetAmount')}}(BU)</label><b>{{sendAssetData.sentAssetAmount}}</b></p>
+              <p><label>{{$t('send.dialog.sentAssetAmount')}}({{tokenUnit}})</label><b>{{sendAssetData.sentAssetAmount}}</b></p>
               <p><label>{{$t('send.dialog.fee')}}(BU)</label><span>{{sendAssetData.fee}}</span></p>
               <p><label>{{$t('send.dialog.note')}}</label><span class="tx-note">{{sendAssetData.note}}</span></p>
             </div>
@@ -86,6 +93,9 @@ export default {
   //   txListComponet
   // },
   computed: {
+    tokenUnit () {
+      return this.sendAssetData.currentTokenType.split('-')[0]
+    },
     loginAccount () {
       return this.$store.state.recentLoginWalletAccount
     },
@@ -100,7 +110,12 @@ export default {
     syncProgress () {
       var _blockStatus = this.$store.state.blockStatus
       if (_blockStatus.seqMax) {
-        return (Math.floor((_blockStatus.seq / _blockStatus.seqMax) * 100)) + '%'
+        var blockSeqUpdatePercent = tools.percentage(_blockStatus.seq, _blockStatus.seqMax)
+        if (_blockStatus.seqMax === 0) {
+          return '0%'
+        } else {
+          return blockSeqUpdatePercent + '%'
+        }
       } else {
         return this.$t('common.computing')
       }
@@ -113,11 +128,26 @@ export default {
       }
     }
   },
+  watch: {
+    accountUnactive () {
+      if (!this.submited) {
+        if (this.sendAssetData.currentTokenType !== 'BU' && this.accountUnactive !== 0) {
+          this.sendAssetData.fee < 0.19 ? this.sendAssetData.fee = 0.19 : this.sendAssetData.fee
+        } else {
+          this.sendAssetData.fee = 0.01
+        }
+      }
+    }
+  },
   data () {
     return {
+      tokenList: [],
       flag: false,
+      submited: false,
+      accountUnactive: 0,
       destAddrValidate: '',
       sendAssetData: {
+        currentTokenType: this.$route.query.tokenType ? this.$route.query.tokenType : 'BU',
         destAddr: '',
         sentAssetAmount: '',
         fee: config.baseTxFee,
@@ -139,6 +169,9 @@ export default {
         accountPwd: [
             { required: true, message: this.$t('error.walletPwdEmpty'), trigger: 'blur' }
         ],
+        currentTokenType: [
+          { required: true, message: this.$t('error.currentTokenType'), trigger: 'change' }
+        ],
         destAddr: [
           { required: true, message: this.$t('error.inputDestAddr'), trigger: 'blur' },
           {
@@ -149,29 +182,34 @@ export default {
               var checkAccountAddressReqOpts = {
                 address: value.trim()
               }
+              var srcAccountAddress = this.$store.state.recentLoginWalletAccount.address
+              if (srcAccountAddress === value) {
+                callback(new Error(this.$t('error.sendSelf')))
+              }
               accountService.checkAddress(checkAccountAddressReqOpts).then(respData => {
+                console.log(respData.errCode)
                 if (errorUtil.ERRORS.NOT_ACTIVE_ACCOUNT_ERROR.CODE === respData.errCode) {
+                  this.accountUnactive++
+                  // if (this.sendAssetData.currentTokenType !== 'BU') {
+                  //   this.sendAssetData.fee < 0.19 ? this.sendAssetData.fee = 0.19 : this.sendAssetData.fee
+                  // }
                   if (this.destAddrValidate !== value) {
                     callback(this.$t('errorUtil.ERRORS.NOT_ACTIVE_ACCOUNT_ERROR'))
                     setTimeout(() => {
                       this.$refs.sendAssetData.validateField('destAddr')
                       this.destAddrValidate = value
                     }, 2000)
-                  } else {
-                    callback()
                   }
+                  callback()
                 } else if (errorUtil.ERRORS.INVALID_ACCOUNT_ADDRESS.CODE === respData.errCode) {
                   callback(this.$t('errorUtil.ERRORS.INVALID_ACCOUNT_ADDRESS'))
                 } else {
+                  this.accountUnactive = 0
                   callback()
                 }
               }).catch(data => {
                 console.log('err data:', data)
               })
-              var srcAccountAddress = this.$store.state.recentLoginWalletAccount.address
-              if (srcAccountAddress === value) {
-                callback(new Error(this.$t('error.sendSelf')))
-              }
             },
             trigger: 'blur'
           }
@@ -196,20 +234,26 @@ export default {
               if (parseFloat(value) > 999999999.99) {
                 callback(new Error(this.$t('error.txAmount.numTooBig')))
               }
-              const reg = /^(([1-9][0-9]*)|(([0]\.\d{1,8}|[1-9][0-9]*\.\d{1,8})))$/
-              if (!reg.test(value)) {
-                callback(new Error(this.$t('error.txAmount.numLimit')))
+              if (this.sendAssetData.currentTokenType === 'BU') {
+                const reg = /^(([1-9][0-9]*)|(([0]\.\d{1,8}|[1-9][0-9]*\.\d{1,8})))$/
+                if (!reg.test(value)) {
+                  callback(new Error(this.$t('error.txAmount.numLimit')))
+                }
+              } else {
+                const reg = /^[1-9][0-9]*$/
+                if (!reg.test(value)) {
+                  callback(new Error(this.$t('error.txAmount.tokenNum')))
+                }
               }
               callback()
             },
             trigger: 'change, blur' }
         ],
         fee: [
-          { required: true, message: this.$t('error.fee.empty'), trigger: 'blur' },
           {
             validator: (rule, value, callback) => {
-              if (value === null) {
-                callback()
+              if (value === null || value.length === 0) {
+                callback(this.$t('error.fee.empty'))
               }
               if (parseFloat(value) === 0) {
                 callback(new Error(this.$t('error.fee.lessThanZero')))
@@ -242,10 +286,68 @@ export default {
     }
   },
   methods: {
+    changeToken (val) {
+      var that = this
+      if (val === 'BU') {
+        that.getAvailableAssetAmount()
+      } else {
+        that.getActiveTokenBalance()
+      }
+      if (val !== 'BU' && this.accountUnactive) {
+        if (this.sendAssetData.fee < 0.19) {
+          this.sendAssetData.fee = 0.19
+        }
+      } else {
+        this.sendAssetData.fee = 0.01
+      }
+      console.log(this.sendAssetData.fee)
+    },
+    getTokenList () {
+      var that = this
+      var reqData = {
+        address: that.loginAccount.address
+      }
+      accountService.getTokenList(reqData).then((respData) => {
+        if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
+          return
+        }
+        respData.data.tokens.unshift({
+          assetCode: 'BU',
+          icon: '',
+          type: '',
+          issuerAddress: ''
+        })
+        respData.data.tokens.forEach(function (item) {
+          if (item.issuerAddress) {
+            item.assetCodeAndAddr = item.assetCode + '-' + item.issuerAddress
+          } else {
+            item.assetCodeAndAddr = item.assetCode
+          }
+        })
+        that.tokenList = respData.data.tokens
+      })
+    },
+    getActiveTokenBalance () {
+      var that = this
+      var code = that.sendAssetData.currentTokenType.split('-')[0]
+      var issuer = that.sendAssetData.currentTokenType.split('-')[1]
+      var reqData = {
+        walletAddress: that.loginAccount.address,
+        assetCode: code,
+        issuerAddress: issuer
+      }
+      txService.getActiveTokenBalance(reqData).then(respData => {
+        if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
+          return
+        }
+        that.availableAssetAmount = respData.data.tokenBalance
+      })
+    },
     txPanelClick (e) {
       this.txPanel = e
     },
     handleSubmit (name) {
+      this.submited = true
       this.$refs[name].validate((valid) => {
         if (valid) {
           this.sendAssetConfirm = true
@@ -257,6 +359,11 @@ export default {
     },
     sendAssetSubmit (name) {
       var that = this
+      var issuerAddr = ''
+      var assetCode = that.sendAssetData.currentTokenType.split('-')[0]
+      if (that.sendAssetData.currentTokenType !== 'BU') {
+        issuerAddr = that.sendAssetData.currentTokenType.split('-')[1]
+      }
       this.$refs[name].validate((valid) => {
         if (valid) {
           var sendTokenReqOpts = {
@@ -266,32 +373,65 @@ export default {
             sentAssetAmount: that.sendAssetData.sentAssetAmount,
             note: that.sendAssetData.note,
             fee: that.sendAssetData.fee,
-            accountPwd: that.sendAssetData.accountPwd
+            accountPwd: that.sendAssetData.accountPwd,
+            issuer: issuerAddr,
+            code: assetCode,
+            accountUnactive: that.accountUnactive
           }
-          txService.sendToken(sendTokenReqOpts).then(respData => {
-            if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
-              that.$Message.error({
-                content: that.$t(respData.msg),
-                duration: 3
-              })
-              setTimeout(function () {
-                that.playPwdLoading = false
-                that.$nextTick(() => {
-                  that.playPwdLoading = true
+          if (that.sendAssetData.currentTokenType === 'BU') {
+            txService.sendToken(sendTokenReqOpts).then(respData => {
+              if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
+                that.$Message.error({
+                  content: that.$t(respData.msg),
+                  duration: 3
                 })
-              }, 10)
-            } else {
-              that.sendAssetConfirm = false
-              that.$Message.success(this.$t('msg.succ.acceptTx'))
-              that.restFrm()
-              that.$router.push({
-                name: 'walletContent'
-              })
-              that.$store.commit('ACTIVE_HEADER_NAV', 'index')
-            }
-          }).catch(data => {
-            console.log('err data:', data)
-          })
+                setTimeout(function () {
+                  that.playPwdLoading = false
+                  that.$nextTick(() => {
+                    that.playPwdLoading = true
+                  })
+                }, 10)
+              } else {
+                that.sendAssetConfirm = false
+                that.$Message.success(this.$t('msg.succ.acceptTx'))
+                that.restFrm()
+                that.$router.push({
+                  name: 'walletContent'
+                })
+                that.$store.commit('ACTIVE_HEADER_NAV', 'index')
+              }
+            }).catch(data => {
+              console.log('err data:', data)
+            })
+          } else {
+            txService.sendAsset(sendTokenReqOpts).then(respData => {
+              if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
+                that.$Message.error({
+                  content: that.$t(respData.msg),
+                  duration: 3
+                })
+                setTimeout(function () {
+                  that.playPwdLoading = false
+                  that.$nextTick(() => {
+                    that.playPwdLoading = true
+                  })
+                }, 10)
+              } else {
+                that.sendAssetConfirm = false
+                that.$Message.success(this.$t('msg.succ.acceptTx'))
+                that.$router.push({
+                  name: 'Token',
+                  query: {
+                    tokenType: that.sendAssetData.currentTokenType
+                  }
+                })
+                that.restFrm()
+                that.$store.commit('ACTIVE_HEADER_NAV', 'token')
+              }
+            }).catch(data => {
+              console.log('err data:', data)
+            })
+          }
         } else {
           setTimeout(function () {
             that.playPwdLoading = false
@@ -346,11 +486,19 @@ export default {
     cancelFrm () {
       this.$refs.playPwdData.resetFields()
       this.sendAssetConfirm = false
+      this.submited = false
     }
   },
   mounted () {
     var that = this
-    that.getAvailableAssetAmount()
+    that.getTokenList()
+    that.$nextTick(function () {
+      if (that.$route.query.tokenType) {
+        that.getActiveTokenBalance()
+      } else {
+        that.getAvailableAssetAmount()
+      }
+    })
   }
 }
 </script>
@@ -375,7 +523,7 @@ frmitemh{height: 20px;}
 .ivu-modal-footer{display: block;text-align: center;}
 .send-asset-confirm-wraper {background-color: #F8F8F8;margin-bottom: 12px;padding: 5px 0;}
 .send-asset-confirm-wraper p{padding: 3px 0;display: flex;}
-.send-asset-confirm-wraper p label{text-align: right;width: 150px;display: block;flex-shrink: 0;}
+.send-asset-confirm-wraper p label{text-align: right;min-width: 150px;display: block;}
 .send-asset-confirm-wraper span{padding-left: 15px;display: block;}
 .send-asset-confirm-wraper b{padding-left: 15px;}
 .send-asset-confirm-wraper span.tx-note{display: block;padding-right: 5px; min-height: 18px; word-break: break-all;}
@@ -409,5 +557,31 @@ frmitemh{height: 20px;}
 }
 .btn-main-inactive .ivu-btn.disabled-btn{
   border-color: #7fe8c0 !important;
+}
+.asset-send-frm{
+  & .ivu-select-visible .ivu-select-selection{
+    box-shadow: none;
+  }
+  & .ivu-select-single .ivu-select-selection{
+    border: 1px solid #dddee1;
+    height: 36px;
+  }
+  & .ivu-form-item-error .ivu-select-selection{
+    border-color: #ed3f14;
+    &:hover{
+      border-color: #ed3f14;
+    }
+  }
+  & .ivu-select-single .ivu-select-selection .ivu-select-placeholder{
+    height: 34px;
+    line-height: 34px;
+  }
+  & .ivu-select-single .ivu-select-selection .ivu-select-selected-value{
+    height: 34px;
+    line-height: 34px;
+  }
+  & .ivu-select-selection:hover{
+    border-color: #00D080;
+  }
 }
 </style>

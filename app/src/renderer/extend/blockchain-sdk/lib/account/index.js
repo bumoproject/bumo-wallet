@@ -14,14 +14,14 @@ export default {
    * @param {string} params.accountNick [必须]账户昵称
    * @param {string} params.pwd         [必须]账户密码
    * @return {object}
-  **/
+   **/
   async create(params) {
     try {
       if (!commonUtil.objectCheck(params, {
-        'accountNick': 'string',
-        'pwd': 'string',
-      })
-        || params.accountNick.length === 0 || params.pwd.length === 0) {
+          'accountNick': 'string',
+          'pwd': 'string',
+        }) ||
+        params.accountNick.length === 0 || params.pwd.length === 0) {
         return (commonUtil.packageError(constUtil.ERRORS.ERR_PARAMS));
       }
 
@@ -34,9 +34,9 @@ export default {
 
       let data = await net.getNewAccount();
       if (commonUtil.objectCheck(data, {
-        'address': 'string',
-        'private_key': 'string',
-      })) {
+          'address': 'string',
+          'private_key': 'string',
+        })) {
         await saveWalletAccount(
           params.accountNick, params.pwd, data.private_key);
         setNewAddress(data.address);
@@ -62,14 +62,15 @@ export default {
    * @param {string} params.accountNick [必须]账户昵称
    * @param {string} params.pwd         [必须]账户密码
    * @return {object}
-  **/
+   **/
   async login(params) {
     try {
       if (!commonUtil.objectCheck(params, {
-            'accountNick': 'string',
-            'pwd': 'string'})
-          || params.accountNick.length === 0
-          || params.pwd.length === 0) {
+          'accountNick': 'string',
+          'pwd': 'string'
+        }) ||
+        params.accountNick.length === 0 ||
+        params.pwd.length === 0) {
         throw (commonUtil.packageError(constUtil.ERRORS.ERR_PARAMS));
       }
       if (savePath === null) {
@@ -89,7 +90,9 @@ export default {
           'msg': constUtil.ERRORS.SUCCESS.MSG,
           'data': {
             'nick': params.accountNick,
-            'address': result.address}});
+            'address': result.address
+          }
+        });
       } else {
         throw (commonUtil.packageError(constUtil.ERRORS.ERR_FILE_DECODE));
       }
@@ -123,13 +126,13 @@ export default {
   async importAccountPrivFile(params) {
     try {
       if (!commonUtil.objectCheck(params, {
-        'accountNick': 'string',
-        'pwd': 'string',
-        'privKeyFile': 'string',
-      })
-        || params.accountNick.length === 0
-        || params.pwd.length === 0
-        || params.privKeyFile.length === 0) {
+          'accountNick': 'string',
+          'pwd': 'string',
+          'privKeyFile': 'string',
+        }) ||
+        params.accountNick.length === 0 ||
+        params.pwd.length === 0 ||
+        params.privKeyFile.length === 0) {
         return (commonUtil.packageError(constUtil.ERRORS.ERR_PARAMS));
       }
       if (savePath === null) {
@@ -171,10 +174,11 @@ export default {
       if (!commonUtil.objectCheck(params, {
           'accountNick': 'string',
           'pwd': 'string',
-          'privKeyStr': 'string'})
-        || params.accountNick.length === 0
-        || params.pwd.length === 0
-        || params.privKeyStr.length === 0) {
+          'privKeyStr': 'string'
+        }) ||
+        params.accountNick.length === 0 ||
+        params.pwd.length === 0 ||
+        params.privKeyStr.length === 0) {
         return (commonUtil.packageError(constUtil.ERRORS.ERR_PARAMS));
       }
       if (savePath === null) {
@@ -195,10 +199,12 @@ export default {
           'data': {
             'nick': params.accountNick,
             'private': info.private_key,
-            'address': info.address}});
+            'address': info.address
+          }
+        });
       } catch (e) {
         if (commonUtil.getErrorCode(e) ===
-              constUtil.ERRORS.ERR_HTTP_RESULT_ERR.CODE) {
+          constUtil.ERRORS.ERR_HTTP_RESULT_ERR.CODE) {
           return (commonUtil.packageError(constUtil.ERRORS.ERR_KEY_INVALID));
         } else {
           return (commonUtil.handleError(e));
@@ -216,8 +222,10 @@ export default {
    **/
   async getAccountTokenBalance(params) {
     try {
-      if (!commonUtil.objectCheck(params, {'address': 'string'})
-        || params.address.length === 0) {
+      if (!commonUtil.objectCheck(params, {
+          'address': 'string'
+        }) ||
+        params.address.length === 0) {
         return (commonUtil.packageError(constUtil.ERRORS.ERR_PARAMS));
       }
       let data = await net.getBalance(params.address);
@@ -254,10 +262,11 @@ export default {
   async getAccountPrivKeyStr(params) {
     try {
       if (!commonUtil.objectCheck(params, {
-            'accountNick': 'string',
-            'pwd': 'string'})
-          || params.accountNick.length === 0 || params.pwd.length === 0) {
-            return (commonUtil.packageError(constUtil.ERRORS.ERR_PARAMS));
+          'accountNick': 'string',
+          'pwd': 'string'
+        }) ||
+        params.accountNick.length === 0 || params.pwd.length === 0) {
+        return (commonUtil.packageError(constUtil.ERRORS.ERR_PARAMS));
       }
       if (savePath === null) {
         return (commonUtil.packageError(constUtil.ERRORS.ERR_SAVE_PATH));
@@ -269,7 +278,9 @@ export default {
           'errCode': constUtil.ERRORS.SUCCESS.CODE,
           'msg': constUtil.ERRORS.SUCCESS.MSG,
           'data': {
-            'privKeyStr': result.private}});
+            'privKeyStr': result.private
+          }
+        });
       } else {
         return (commonUtil.packageError(constUtil.ERRORS.ERR_FILE_DECODE));
       }
@@ -287,11 +298,11 @@ export default {
   async saveAccountPrivKeyFile(params) {
     try {
       if (!commonUtil.objectCheck(params, {
-        'accountNick': 'string',
-        'savePrivPath': 'string',
-      })
-        || params.accountNick.length === 0
-        || params.savePrivPath.length === 0) {
+          'accountNick': 'string',
+          'savePrivPath': 'string',
+        }) ||
+        params.accountNick.length === 0 ||
+        params.savePrivPath.length === 0) {
         return (commonUtil.packageError(constUtil.ERRORS.ERR_PARAMS));
       }
       if (!fs.existsSync(path.dirname(params.savePrivPath))) {
@@ -360,7 +371,8 @@ async function decodeFile(file, pswd) {
     data = JSON.parse(data);
     return {
       'private': info,
-      'address': data.address};
+      'address': data.address
+    };
   } catch (error) {
     commonUtil.handleError(error);
     return null;
@@ -413,8 +425,8 @@ function checkWalletAccountNewName(name) {
           continue;
         }
         if (file.substr(
-          file.length - conf.store.account_store_suffix.length).toUpperCase()
-          !== conf.store.account_store_suffix.toUpperCase()) {
+            file.length - conf.store.account_store_suffix.length).toUpperCase() !==
+          conf.store.account_store_suffix.toUpperCase()) {
           continue;
         }
         file = file.substr(

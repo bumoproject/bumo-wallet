@@ -90,7 +90,7 @@
 <script>
 import txService from '../../controllers/txService'
 import accountService from '../../controllers/accountService'
-import utils from '../../utils/tools.js'
+import utils from '../../utils/tools'
 import errorUtil from '../../constants'
 import config from '../../../config'
 export default {
@@ -113,7 +113,12 @@ export default {
     syncProgress () {
       var _blockStatus = this.$store.state.blockStatus
       if (_blockStatus.seqMax) {
-        return (Math.floor((_blockStatus.seq / _blockStatus.seqMax) * 100)) + '%'
+        var blockSeqUpdatePercent = utils.percentage(_blockStatus.seq, _blockStatus.seqMax)
+        if (_blockStatus.seqMax === 0) {
+          return '0%'
+        } else {
+          return blockSeqUpdatePercent + '%'
+        }
       } else {
         return this.$t('common.computing')
       }
