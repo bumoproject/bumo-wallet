@@ -78,7 +78,7 @@ export default class Application {
     if (process.env.NODE_ENV !== 'development' && process.platform === 'darwin') {
       this.copyBuchain()
     }
-    this.startBumo()
+    // this.startBumo()
     this.registerShortcut()
     this.setAppMenu()
   }

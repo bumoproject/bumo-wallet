@@ -1,0 +1,51 @@
+{
+	"db": {
+		"account_path": "data/account.db",
+		"ledger_path": "data/ledger.db",
+		"keyvalue_path": "data/keyvalue.db"
+	},
+	"p2p": {
+		"network_id": 20000,
+		"consensus_network": {
+			"heartbeat_interval": 60,
+			"listen_port": 26001,
+			"target_peer_connection": 10,
+			"known_peers": ["seed1.bumotest.io:26001","seed2.bumotest.io:26001","seed3.bumotest.io:26001","seed4.bumotest.io:26001"]
+		}
+	},
+	"webserver": {
+		"listen_addresses": "127.0.0.1:26002"
+	},
+	"wsserver": {
+		"listen_address": "127.0.0.1:26003"
+	},
+	"ledger": {
+		"max_trans_per_ledger": 10000,
+		"hardfork_points": [],
+		"tx_pool":{
+            	"queue_limit":10240,
+            	"queue_per_account_txs_limit":64
+        }
+	},
+	"genesis" :{
+		"account" : "buQBEoVrVjdHmUc97EA7nChJhAMD3UoXW5uk",
+		"fees": {"base_reserve":10000000, "gas_price" :1000},
+		"validators": [
+			"buQjSCRX5rwBzKmhyry4qAFnLDubY3R5y83V",
+			"buQdE6YSqWu61JdUh6zkcPW1aPHYQX3X4Scj",
+			"buQBtykggdN9DDUCCSEK8rESXzXphzo9K6Kd",
+			"buQfs9ksvqp3kWijbBKRvgnCBLnTZW7UZHJq",
+			"buQqBLuHj1bBgcRGnmbhqEpSAY5TPktuRRVo",
+			"buQsMHovSLu8ZBAQmjfXTdZqDq88aomrfinu",
+			"buQsYKJBhAKhw8huhGV8Aye3z8txnZ91z6Wz"
+		]
+	},
+	"logger": {
+		"path": "log/bumo.log",
+		"dest": "FILE|STDOUT|STDERR",
+		"level": "INFO|WARNING|ERROR|FATAL",
+		"time_capacity": 1,
+		"size_capacity": 10,
+		"expire_days": 10
+	}
+}

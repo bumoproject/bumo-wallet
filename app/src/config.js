@@ -5,17 +5,19 @@ export default {
   name: pkg.productName,
   version: pkg.version,
   defaultMaxTxFee: 10,
-  reserveAccountBalance: 0.1,
+  reserveAccountBalance: 0.01,
   baseTxFee: '0.01',
   minGasPrice: '1000',
   walletCatalog: pkg.productName,
   api: {
     port: 80,
     browser: {
-      domain: 'https://explorer.bumo.io/',
+      // domain: 'https://explorer.bumotest.io/',
+      domain: 'https://explorer.bumot.io/',
       port: 80
     },
     wallet: {
+      // serverHost: 'wallet-s.bumodev.io',
       serverHost: 'wallet-s.bumo.io',
       port: 80
     }

@@ -223,6 +223,7 @@ export default {
   'token': {
     'content': {
       'overallBalance': {
+        'loadingBalance': '余额获取中...',
         'title': '余额',
         'accountAddress': '账户地址',
         'copyBtn': '复制',
@@ -704,7 +705,9 @@ export default {
       'notNum': '转账数量应为数字',
       'numTooBig': '数量过大！',
       'numLimit': '转账数量应大于0,最多支持小数点后8位',
-      'tokenNum': '转移数量应为正整数'
+      'tokenNum': '转移数量应为正整数',
+      'decimals': '转账数量应大于0,最多支持小数点后',
+      'decimalsUnit': '位'
     },
     'fee': {
       'empty': '交易费用不能为空',
@@ -743,7 +746,8 @@ export default {
       'SUBMIT_TX_ERROR': '提交失败',
       'NOT_NORMAL_ACCOUNT': '付款账户仅支持普通账户地址',
       'NOT_UNIT_ACCOUNT': '付款账户仅支持联名账户地址',
-      'NET_OFFLINE': '网络不可用，请在联网情况下进行操作'
+      'NET_OFFLINE': '网络不可用，请在联网情况下进行操作',
+      'NETWORK_ERROR': '网络错误'
     }
   },
   'msg': {

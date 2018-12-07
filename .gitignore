@@ -6,7 +6,7 @@ build/
 wallets/
 bumo.db
 coverage
-node_modules
+node_modules**
 npm-debug.log
 npm-debug.log.*
 thumbs.db
@@ -15,8 +15,8 @@ app/src/main/.env
 build/buchain
 app/buchain/
 buchain/mac/data/*
+!buchain/mac/data/.gitkeep
 buchain/mac/log/
 buchain/win/data/
 buchain/win/log/
 .idea
-.project
