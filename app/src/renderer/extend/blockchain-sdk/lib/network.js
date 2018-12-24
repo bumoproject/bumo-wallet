@@ -598,6 +598,15 @@ export default {
             tmp.params.destAddress = payCoin.getDestAddress();
             tmp.params.amount = payCoin.getAmount().toString();
             break;
+          case 'payasset':
+            let payAsset = ele.getPayAsset();
+            tmp.params.destAddress = payAsset.getDestAddress();
+
+            const asset = payAsset.getAsset();
+            tmp.params.amount = asset.getAmount();
+            tmp.params.code = asset.getKey().getCode();
+            tmp.params.issuer = asset.getKey().getIssuer();
+            break;
           default:
             return;
         }

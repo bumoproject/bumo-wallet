@@ -7,17 +7,22 @@
               :rules="ruleValidate" :label-width="250">
           <FormItem :label="$t('unite.buildTx.buildBlobForm.srcAddr.label')" prop="srcAddr" class="form-item">
             <Input v-model.trim="sendAssetData.srcAddr" :placeholder="$t('unite.buildTx.buildBlobForm.srcAddr.placeholder')"
-                  @on-blur="getAvailableAssetAmount" ></Input>
+                  @on-blur="getAvailableBalanceAndTokenList()"></Input>
           </FormItem>
           <FormItem :label="$t('unite.buildTx.buildBlobForm.destAddr.label')" prop="destAddr" class="form-item">
             <Input v-model.trim="sendAssetData.destAddr" :placeholder="$t('unite.buildTx.buildBlobForm.destAddr.placeholder')"></Input>
           </FormItem>
-          <FormItem :label="$t('unite.buildTx.buildBlobForm.txAmount.label') + ' (BU)'" prop="sentAssetAmount" class="tx-amount">
+          <FormItem :label="$t('send.form.currentTokenType.label')" prop="currentTokenType">
+            <Select :disabled="tokenList.length === 0" v-model="sendAssetData.currentTokenType">
+              <Option v-for="(item, index) in tokenList" :key="index" :value="item.code">{{item.code}}</Option>
+            </Select>
+          </FormItem>
+          <FormItem :label="$t('unite.buildTx.buildBlobForm.txAmount.label') + ' (' + (sendAssetData.currentTokenType || 'BU')  + ')'" prop="sentAssetAmount" class="tx-amount">
             <Input class="ost-tx-amount-ipt" v-model.trim="sendAssetData.sentAssetAmount" :placeholder="$t('unite.buildTx.buildBlobForm.txAmount.placeholder')">
             </Input>
-            <div class="available-balance">
+            <div v-if="availableAssetAmount != ''" class="available-balance">
               <span>{{$t('unite.buildTx.buildBlobForm.txAmount.balance')}}</span>
-              <span class="balance-unit">{{availableAssetAmount}}BU</span>
+              <span class="balance-unit">{{availableAssetAmount}}{{sendAssetData.currentTokenType}}</span>
             </div>
           </FormItem>
           <FormItem :label="$t('unite.buildTx.buildBlobForm.fee.label') + ' (BU)'" prop="fee">
@@ -56,7 +61,7 @@
             <div class="ost-card-item-content ost-card-item-content-special">{{txDetail.destAddr}}</div>
           </div>
           <div class="ost-card-item ost-card-item-special">
-            <div class="ost-card-item-name ost-card-item-name-special">{{$t('unite.buildTx.blobParserDetail.txDetail.txAmount')}} (BU)</div>
+            <div class="ost-card-item-name ost-card-item-name-special">{{$t('unite.buildTx.blobParserDetail.txDetail.txAmount')}} ({{sendAssetData.currentTokenType}})</div>
             <div class="ost-card-item-content ost-card-item-content-special">{{txDetail.sentAssetAmount}}</div>
           </div>
           <div class="ost-card-item ost-card-item-special">
@@ -129,18 +134,59 @@ export default {
       } else {
         return true
       }
+    },
+    availableAssetAmount () {
+      var result = ''
+      for (var i = 0; i < this.tokenList.length; i++) {
+        if (this.sendAssetData.currentTokenType === this.tokenList[i].code) {
+          if (this.sendAssetData.currentTokenType === 'BU') {
+            if ((this.tokenList[i].amount - 0) > (config.reserveAccountBalance - 0)) {
+              result = utils.commafy(utils.bigNumMinus(this.tokenList[i].amount, config.reserveAccountBalance))
+            } else {
+              result = '0'
+            }
+          } else {
+            result = this.tokenList[i].amount
+          }
+        }
+      }
+      return result
+    },
+    currentTokenIssuer () {
+      var result = ''
+      for (var i = 0; i < this.tokenList.length; i++) {
+        if (this.sendAssetData.currentTokenType === this.tokenList[i].code) {
+          if (this.sendAssetData.currentTokenType === 'BU') {
+            result = ''
+          } else {
+            result = this.tokenList[i].issuer
+          }
+        }
+      }
+      return result
+    },
+    currentTokenDecimals () {
+      var result = 0
+      for (var i = 0; i < this.tokenList.length; i++) {
+        if (this.sendAssetData.currentTokenType === this.tokenList[i].code) {
+          result = this.tokenList[i].decimals
+        }
+      }
+      return result
     }
   },
   data () {
     return {
+      tokenList: [],
       detailShow: false,
       submitBtnActive: false,
       accountType: false,
       accountBalance: 0,
-      availableAssetAmount: 0,
       destAddrValidate: '',
       signersCount: 1,
+      blobBuildIng: false,
       sendAssetData: {
+        currentTokenType: '',
         srcAddr: '',
         destAddr: '',
         sentAssetAmount: '',
@@ -153,51 +199,49 @@ export default {
           {
             validator: (rule, value, callback) => {
               var srcAddress = value.trim()
-              if (srcAddress === null) {
-                callback()
+              if (srcAddress === null || srcAddress === '') {
+                callback(new Error(this.$t('error.srcAddr.uniteEmpty')))
               }
               var checkAccountAddressReqOpts = {
                 address: srcAddress
               }
-              accountService.getAccountInfo(srcAddress).then(resData => {
-                if (!resData.data.priv.signers) {
-                  callback(new Error(this.$t('errorUtil.ERRORS.NOT_UNIT_ACCOUNT')))
-                  this.accountType = false
-                } else {
-                  this.accountType = true
-                  this.signersCount = resData.data.priv.signers.length
-                  switch (this.signersCount) {
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                    case 5: this.sendAssetData.fee = '0.01'; break
-                    case 6: this.sendAssetData.fee = '0.05'; break
-                    case 7:
-                    case 8:
-                    case 9:
-                    case 10:
-                    case 11:
-                    case 12:
-                    case 13:
-                    case 14:
-                    case 15:
-                    case 16: this.sendAssetData.fee = '0.1'; break
-                  }
-                }
-              }).catch(data => {
-                console.log('err data:', data)
-              })
               accountService.checkAddress(checkAccountAddressReqOpts).then(respData => {
-                if (errorUtil.ERRORS.NO_EXIST_ACCOUNT_ADDRESS.CODE === respData.errCode) {
+                if (errorUtil.ERRORS.SUCCESS.CODE === respData.errCode) {
                   callback()
-                } else if (errorUtil.ERRORS.INVALID_ACCOUNT_ADDRESS.CODE === respData.errCode) {
+                } else {
                   callback(new Error(this.$t('errorUtil.ERRORS.INVALID_ACCOUNT_ADDRESS')))
                 }
               }).catch(data => {
                 console.log('err data:', data)
               })
-
+            },
+            trigger: 'blur'
+          },
+          {
+            validator: (rule, value, callback) => {
+              var srcAddress = value.trim()
+              accountService.getAccountInfo(srcAddress).then(resData => {
+                if (errorUtil.ERRORS.SUCCESS.CODE === resData.errCode) {
+                  if (resData.data.priv.signers.length > 0) {
+                    this.accountType = true
+                    callback()
+                  } else {
+                    this.accountType = false
+                    callback(new Error(this.$t('errorUtil.ERRORS.NOT_UNIT_ACCOUNT')))
+                  }
+                } else {
+                  callback(new Error(this.$t('errorUtil.ERRORS.NOT_UNIT_ACCOUNT')))
+                }
+              }).catch(data => {
+                callback(new Error(this.$t('errorUtil.ERRORS.NOT_UNIT_ACCOUNT')))
+                console.log('err data:', data)
+              })
+            },
+            trigger: 'blur'
+          },
+          {
+            validator: (rule, value, callback) => {
+              var srcAddress = value.trim()
               // get balance of account
               var getAccountTokenBalanceReqData = {
                 walletAddress: srcAddress
@@ -210,8 +254,13 @@ export default {
                   } else {
                     callback()
                   }
+                } else {
+                  // this.tokenList = []
+                  this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
                 }
               }).catch(data => {
+                // this.tokenList = []
+                this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
                 console.log('getAccountTokenBalance err data:', data)
               })
             },
@@ -255,11 +304,37 @@ export default {
             trigger: 'blur'
           }
         ],
+        currentTokenType: [
+          { required: true, message: this.$t('error.currentTokenType'), trigger: 'change' }
+        ],
         sentAssetAmount: [
             { required: true, message: this.$t('error.txAmount.empty'), trigger: 'blur' },
           {
             validator: (rule, value, callback) => {
-              const reg = /^(([1-9][0-9]*)|(([0]\.\d{1,8}|[1-9][0-9]*\.\d{1,8})))$/
+              // var testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,8}|[1-9][0-9]*\.\d{1,8})))$/
+              /* eslint-disable */
+              var testReg = ''
+              switch (this.currentTokenDecimals) {
+                case 8: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,8}|[1-9][0-9]*\.\d{1,8})))$/
+                break;
+                case 7: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,7}|[1-9][0-9]*\.\d{1,7})))$/
+                break;
+                case 6: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,6}|[1-9][0-9]*\.\d{1,6})))$/
+                break;
+                case 5: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,5}|[1-9][0-9]*\.\d{1,5})))$/
+                break;
+                case 4: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,4}|[1-9][0-9]*\.\d{1,4})))$/
+                break;
+                case 3: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,3}|[1-9][0-9]*\.\d{1,3})))$/
+                break;
+                case 2: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,2}|[1-9][0-9]*\.\d{1,2})))$/
+                break;
+                case 1: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1}|[1-9][0-9]*\.\d{1})))$/
+                break;
+                case 0: testReg = /^[1-9]\d*$/
+                break;
+                default: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,8}|[1-9][0-9]*\.\d{1,8})))$/
+              }
               if (value < 0) {
                 callback(new Error(this.$t('error.txAmount.lessThanZero')))
               }
@@ -269,8 +344,8 @@ export default {
               if (parseFloat(value) > 999999999.99) {
                 callback(new Error(this.$t('error.txAmount.numTooBig')))
               }
-              if (!reg.test(value)) {
-                callback(new Error(this.$t('error.txAmount.numLimit')))
+              if (!testReg.test(value)) {
+                callback(new Error(this.$t('error.txAmount.decimals') + this.currentTokenDecimals + this.$t('error.txAmount.decimalsUnit')))
               }
               console.log('availableAssetAmount: ' + this.availableAssetAmount + ', v: ' + value)
               if (parseFloat(utils.delcommafy(this.availableAssetAmount)) < parseFloat(value)) {
@@ -287,7 +362,7 @@ export default {
               if (value === null) {
                 callback()
               }
-              const reg = /^(([1-9][0-9]*)|(([0]\.\d{1,8}|[1-9][0-9]*\.\d{1,8})))$/
+              var reg = /^(([1-9][0-9]*)|(([0]\.\d{1,8}|[1-9][0-9]*\.\d{1,8})))$/
               if (!reg.test(value)) {
                 callback(new Error(this.$t('error.fee.numLimit')))
               }
@@ -319,6 +394,72 @@ export default {
     }
   },
   methods: {
+    getAvailableBalanceAndTokenList () {
+      var that = this
+      if (!that.sendAssetData.srcAddr) {
+        return
+      }
+      that.tokenList = []
+      accountService.getAccountInfo(that.sendAssetData.srcAddr).then(resData => {
+        if (errorUtil.ERRORS.SUCCESS.CODE === resData.errCode) {
+          try {
+            this.signersCount = resData.data.priv.signers.length
+            switch (this.signersCount) {
+              case 1: this.sendAssetData.fee = '0.01'; break
+              case 2: this.sendAssetData.fee = '0.02'; break
+              case 3: this.sendAssetData.fee = '0.03'; break
+              case 4: this.sendAssetData.fee = '0.05'; break
+              case 5: this.sendAssetData.fee = '0.05'; break
+              case 6: this.sendAssetData.fee = '0.06'; break
+              case 7: this.sendAssetData.fee = '0.07'; break
+              case 8: this.sendAssetData.fee = '0.08'; break
+              case 9: this.sendAssetData.fee = '0.09'; break
+              case 10: this.sendAssetData.fee = '0.09'; break
+              case 11: this.sendAssetData.fee = '0.09'; break
+              case 12: this.sendAssetData.fee = '0.09'; break
+              case 13: this.sendAssetData.fee = '0.09'; break
+              case 14: this.sendAssetData.fee = '0.09'; break
+              case 15: this.sendAssetData.fee = '0.09'; break
+              case 16: this.sendAssetData.fee = '0.1'; break
+            }
+          } catch (e) {
+            console.log(e)
+            // this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
+            that.tokenList = []
+            return
+          }
+        } else {
+          that.tokenList = []
+          this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
+          return
+        }
+      }).catch(e => {
+        that.tokenList = []
+        this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
+        return
+      })
+      var reqData = {
+        address: that.sendAssetData.srcAddr
+      }
+      accountService.getAvailableBalanceAndTokenList(reqData).then((respData) => {
+        if (errorUtil.ERRORS.SUCCESS.CODE === respData.errCode) {
+          respData.data.tokens.unshift({
+            code: 'BU',
+            issuer: '',
+            amount: respData.data.balance,
+            decimals: 8
+          })
+          respData.data.tokens.forEach(function (item) {})
+          that.tokenList = respData.data.tokens
+        } else {
+          that.tokenList = []
+          // this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
+        }
+      }).catch(e => {
+        that.tokenList = []
+        this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
+      })
+    },
     getAvailableAssetAmount () {
       var that = this
       var reqData = {
@@ -347,6 +488,9 @@ export default {
         this.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
         return
       }
+      if (this.blobBuildIng) {
+        return
+      }
       var that = this
       this.$refs.sendAssetData.validate((valid) => {
         if (valid) {
@@ -358,9 +502,14 @@ export default {
             note: that.sendAssetData.note,
             fee: that.sendAssetData.fee,
             seqOffset: 0,
-            signersCount: this.signersCount
+            signersCount: this.signersCount,
+            currentTokenType: that.sendAssetData.currentTokenType,
+            currentTokenIssuer: that.currentTokenIssuer,
+            currentTokenDecimals: that.currentTokenDecimals
           }
+          that.blobBuildIng = true
           txService.buildTxBlob(reqData).then(respData => {
+            that.blobBuildIng = false
             if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
               that.$Message.error({
                 content: that.$t(respData.msg),
@@ -372,6 +521,7 @@ export default {
               that.$emit('buildTxSucc', that.sendAssetData)
             }
           }).catch(data => {
+            that.blobBuildIng = false
             console.log('err data:', data)
           })
         }
@@ -379,7 +529,9 @@ export default {
     },
     handleClearTxStrClick () {
       this.$emit('clearTxStr')
+      this.tokenList = []
       this.sendAssetData = {
+        currentTokenType: '',
         srcAddr: '',
         destAddr: '',
         sentAssetAmount: '',
@@ -387,7 +539,8 @@ export default {
         note: ''
       }
     }
-  }
+  },
+  mounted (){}
 }
 </script>
 <style scoped lang="less">

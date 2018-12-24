@@ -223,6 +223,7 @@ export default {
   'token': {
     'content': {
       'overallBalance': {
+        'loadingBalance': 'Loading...',
         'title': 'Balance',
         'accountAddress': 'Account Address',
         'copyBtn': 'Copy',
@@ -704,7 +705,9 @@ export default {
       'notNum': 'Amount should be numbers',
       'numTooBig': 'Over Transfer Limit',
       'numLimit': 'Transfer Shall be more than 0, with a maximum of 8 decimal places',
-      'tokenNum': 'Amount should be positive integer'
+      'tokenNum': 'Amount should be positive integer',
+      'decimals': 'Transfer Shall be more than 0, with a maximum of ',
+      'decimalsUnit': ' decimal places'
     },
     'fee': {
       'empty': 'Fill in Transaction Fee',
@@ -743,7 +746,8 @@ export default {
       'SUBMIT_TX_ERROR': 'Fail to Submit',
       'NOT_NORMAL_ACCOUNT': 'For Standard Account Address Only',
       'NOT_UNIT_ACCOUNT': 'For Joint-Account Address Only',
-      'NET_OFFLINE': 'Network NOT Available, Please Reconnect'
+      'NET_OFFLINE': 'Network NOT Available, Please Reconnect',
+      'NETWORK_ERROR': 'Network Error'
     }
   },
   'msg': {

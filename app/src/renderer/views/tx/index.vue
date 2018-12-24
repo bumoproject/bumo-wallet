@@ -240,9 +240,32 @@ export default {
                   callback(new Error(this.$t('error.txAmount.numLimit')))
                 }
               } else {
-                const reg = /^[1-9][0-9]*$/
-                if (!reg.test(value)) {
-                  callback(new Error(this.$t('error.txAmount.tokenNum')))
+                /* eslint-disable */
+                var testReg = ''
+                var decimals = this.sendAssetData.currentTokenType.split('-')[2] - 0
+                switch (decimals) {
+                  case 8: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,8}|[1-9][0-9]*\.\d{1,8})))$/
+                  break;
+                  case 7: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,7}|[1-9][0-9]*\.\d{1,7})))$/
+                  break;
+                  case 6: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,6}|[1-9][0-9]*\.\d{1,6})))$/
+                  break;
+                  case 5: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,5}|[1-9][0-9]*\.\d{1,5})))$/
+                  break;
+                  case 4: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,4}|[1-9][0-9]*\.\d{1,4})))$/
+                  break;
+                  case 3: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,3}|[1-9][0-9]*\.\d{1,3})))$/
+                  break;
+                  case 2: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,2}|[1-9][0-9]*\.\d{1,2})))$/
+                  break;
+                  case 1: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1}|[1-9][0-9]*\.\d{1})))$/
+                  break;
+                  case 0: testReg = /^[1-9]\d*$/
+                  break;
+                  default: testReg = /^(([1-9][0-9]*)|(([0]\.\d{1,8}|[1-9][0-9]*\.\d{1,8})))$/
+                }
+                if (!testReg.test(value)) {
+                  callback(new Error(this.$t('error.txAmount.decimals') + decimals + this.$t('error.txAmount.decimalsUnit')))
                 }
               }
               callback()
@@ -319,11 +342,12 @@ export default {
         })
         respData.data.tokens.forEach(function (item) {
           if (item.issuerAddress) {
-            item.assetCodeAndAddr = item.assetCode + '-' + item.issuerAddress
+            item.assetCodeAndAddr = item.assetCode + '-' + item.issuerAddress + '-' + item.decimals
           } else {
             item.assetCodeAndAddr = item.assetCode
           }
         })
+        // console.log(respData.data.tokens)
         that.tokenList = respData.data.tokens
       })
     },
@@ -331,10 +355,12 @@ export default {
       var that = this
       var code = that.sendAssetData.currentTokenType.split('-')[0]
       var issuer = that.sendAssetData.currentTokenType.split('-')[1]
+      var decimals = that.sendAssetData.currentTokenType.split('-')[2] - 0
       var reqData = {
         walletAddress: that.loginAccount.address,
         assetCode: code,
-        issuerAddress: issuer
+        issuerAddress: issuer,
+        decimals
       }
       txService.getActiveTokenBalance(reqData).then(respData => {
         if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
@@ -360,9 +386,11 @@ export default {
     sendAssetSubmit (name) {
       var that = this
       var issuerAddr = ''
+      var decimals = 0
       var assetCode = that.sendAssetData.currentTokenType.split('-')[0]
       if (that.sendAssetData.currentTokenType !== 'BU') {
         issuerAddr = that.sendAssetData.currentTokenType.split('-')[1]
+        decimals = that.sendAssetData.currentTokenType.split('-')[2] - 0
       }
       this.$refs[name].validate((valid) => {
         if (valid) {
@@ -376,7 +404,8 @@ export default {
             accountPwd: that.sendAssetData.accountPwd,
             issuer: issuerAddr,
             code: assetCode,
-            accountUnactive: that.accountUnactive
+            accountUnactive: that.accountUnactive,
+            decimals
           }
           if (that.sendAssetData.currentTokenType === 'BU') {
             txService.sendToken(sendTokenReqOpts).then(respData => {

@@ -72,6 +72,35 @@ export default {
       })
     })
   },
+  getAvailableBalanceAndTokenList (opts) {
+    var respData = {
+      errCode: 0,
+      msg: 'success',
+      data: {
+        balance: '',
+        tokens: [
+          {
+            code: '',
+            issuer: '',
+            amount: '',
+            decimals: ''
+          }
+        ]
+      }
+    }
+    return new Promise((resolve, reject) => {
+      bSdk.tx.getBalanceAndTokens(opts.address).then(respTokenListData => {
+        if (errorUtil.ERRORS.SUCCESS.CODE === respTokenListData.errCode) {
+          respData.data = respTokenListData.data
+        } else {
+          respData.errCode = respTokenListData.errCode
+        }
+        resolve(respData)
+      }).catch((e) => {
+        reject()
+      })
+    })
+  },
   loadWalletTokenAndRecentTxs (opts) {
     var respData = {
       errCode: 0,
@@ -122,8 +151,13 @@ export default {
         if (errorUtil.ERRORS.SUCCESS.CODE === respGetAccountTokenBalanceData.errCode) {
           respData.data.tokenBalance = respGetAccountTokenBalanceData.data.amount
           respData.data.tokenReserve = respGetAccountTokenBalanceData.data.reserve
+          resolve(respData)
+        } else {
+          respData.errCode = respGetAccountTokenBalanceData.errCode
+          resolve(respData)
         }
-        resolve(respData)
+      }).catch((e) => {
+        reject(e)
       })
     })
   },
@@ -328,7 +362,6 @@ export default {
             gasPrice: gasPrice,
             accountNick: opts.walletAccount.nick,
             balanceInit,
-            pwd: opts.walletAccountPwd,
             threshold: {
               tx: opts.masterWeight
             },
@@ -430,8 +463,12 @@ export default {
         if (errorUtil.ERRORS.SUCCESS.CODE === respGetAccountTokenBalanceData.errCode) {
           respData.data.tokenBalance = tools.commafy(respGetAccountTokenBalanceData.data.amount)
           respData.data.priv = respGetAccountTokenBalanceData.data.priv
+        } else {
+          respData.errCode = respGetAccountTokenBalanceData.errCode
         }
         resolve(respData)
+      }).catch(e => {
+        reject()
       })
     })
   }
