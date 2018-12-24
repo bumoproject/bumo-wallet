@@ -14,7 +14,17 @@
           <p>{{$t('home.content.overallBalance.title')}}<span class="index-account-address-title">{{$t('home.content.overallBalance.accountAddress')}}</span></p>
           <b class="banlace">
             <!-- :class="{'balance-point-part': ((asset.intPart === '0') && (asset.pointPart === undefined))}" -->
-            <div v-if="!blockStatus"><span>{{asset.pointPart ? asset.intPart : asset.intPart}}</span><span :class="{'balance-point-part': asset.intPart !== '0'}">{{asset.pointPart ? '.' + asset.pointPart: ''}}</span> BU</div>
+            <div style="min-height: 32px;" v-if="!blockStatus">
+              <span v-if="asset.pointPart !== ''">
+                <span>{{asset.pointPart ? asset.intPart : asset.intPart}}</span>
+                <span :class="{'balance-point-part': asset.intPart !== '0'}">{{asset.pointPart ? '.' + asset.pointPart: ''}}</span>
+                <span> BU</span>
+              </span>
+              <span v-else class="loading-balance">
+                <Icon type="load-c" size=18 class="demo-spin-icon-load"></Icon>
+                <span class="loading-balance-words">{{$t('token.content.overallBalance.loadingBalance')}}</span>
+              </span>
+            </div>
             <div v-else class="no-get-banlace">{{$t('home.content.overallBalance.unsyncBlock')}}</div>
             <div class="index-account-address">
               <span>{{loginAccount.address}}</span><div class="copy-btn" @click="handleCopyBtnClick">{{$t('home.content.overallBalance.copyBtn')}}</div>

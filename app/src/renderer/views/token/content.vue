@@ -12,7 +12,17 @@
       <div class="asset-panel">
         <p>{{$t('token.content.overallBalance.title')}}<span class="index-account-address-title">{{$t('token.content.overallBalance.accountAddress')}}</span></p>
         <b class="banlace">
-          <div v-if="!blockStatus"><span>{{asset.intPart | commafy}}</span><span :class="{'balance-point-part': asset.intPart !== '0'}">{{asset.pointPart ? '.' + asset.pointPart: ''}}</span> {{currentToken}}</div>
+          <div style="min-height: 32px;" v-if="!blockStatus">
+            <span v-if="!loadingBalance">
+              <span>{{asset.intPart | commafy}}</span>
+              <span :class="{'balance-point-part': asset.intPart !== '0'}">{{asset.pointPart ? '.' + asset.pointPart: ''}}</span>
+              <span> {{currentToken}}</span>
+            </span>
+            <span v-else class="loading-balance">
+              <Icon type="load-c" size=18 class="demo-spin-icon-load"></Icon>
+              <span class="loading-balance-words">{{$t('token.content.overallBalance.loadingBalance')}}</span>
+            </span>
+          </div>
           <div v-else class="no-get-banlace">{{$t('token.content.overallBalance.unsyncBlock')}}</div>
           <div class="index-account-address">
             <span>{{loginAccount.address}}</span><div class="copy-btn" @click="handleCopyBtnClick">{{$t('token.content.overallBalance.copyBtn')}}</div>
@@ -111,7 +121,8 @@ export default {
   name: 'tokenContent',
   props: {
     currentToken: String,
-    currentTokenAddress: String
+    currentTokenAddress: String,
+    currentTokenDecimals: Number
   },
   computed: {
     blockStatus () {
@@ -157,6 +168,7 @@ export default {
         hash: '47eb5332377c08e25b5f7ee5b58205e88fe7a55f0e063dfdde3eb16df052c1fa'
       },
       loading: false,
+      loadingBalance: false,
       showTxDetail: false,
       txs: [],
       currentPage: 1,
@@ -172,7 +184,7 @@ export default {
       this.$router.push({
         name: 'tx',
         query: {
-          tokenType: that.currentToken + '-' + that.currentTokenAddress
+          tokenType: that.currentToken + '-' + that.currentTokenAddress + '-' + that.currentTokenDecimals
         }
       })
     },
@@ -218,15 +230,17 @@ export default {
       var reqData = {
         walletAddress: this.loginAccount.address,
         assetCode: that.currentToken,
-        issuerAddress: that.currentTokenAddress
+        issuerAddress: that.currentTokenAddress,
+        decimals: that.currentTokenDecimals
       }
       txService.getActiveTokenBalance(reqData).then(respData => {
-        if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
-          return
+        // console.log(respData)
+        if (errorUtil.ERRORS.SUCCESS.CODE === respData.errCode && respData.data.assetCode === that.currentToken) {
+          that.loadingBalance = false
+          that.asset.balance = respData.data.tokenBalance
+          that.asset.intPart = that.asset.balance.split('.')[0]
+          that.asset.pointPart = that.asset.balance.split('.')[1]
         }
-        that.asset.balance = respData.data.tokenBalance ? respData.data.tokenBalance : '0'
-        that.asset.intPart = that.asset.balance.split('.')[0]
-        that.asset.pointPart = that.asset.balance.split('.')[1]
       })
     },
     loadTxData () {
@@ -235,9 +249,11 @@ export default {
         pageStartIndex: (that.currentPage - 1) * that.pageSize,
         pageSize: that.pageSize,
         assetCode: that.currentToken,
-        issuerAddress: that.currentTokenAddress
+        issuerAddress: that.currentTokenAddress,
+        decimals: that.currentTokenDecimals - 0
       }
       txService.getTokenTxList(reqData).then(respData => {
+        // console.log(respData)
         if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
           return
         }
@@ -270,8 +286,8 @@ export default {
   watch: {
     currentToken: function (newVal, oldVal) {
       var that = this
-      console.log(newVal)
       that.currentPage = 1
+      that.loadingBalance = true
       that.loadData()
       that.loadTxData()
       that.setTime()
@@ -441,4 +457,29 @@ position: relative;
 .ivu-page .ivu-page-simple{text-align: center;padding-top: 20px;}
 .ivu-page-simple .ivu-page-simple-pager{display: none;}
 .show-tx-detail-wraper span.tx-note{float: inherit;word-break: break-all;}
+.demo-spin-icon-load{
+  animation: ani-demo-spin 1s linear infinite;
+}
+.loading-balance{
+  color: #666;
+  font-weight: bold;
+  line-height: 28px;
+  &>.demo-spin-icon-load{
+    float: left;
+    margin-right: 5px;
+    margin-top: 8px;
+    display: inline-block;
+  }
+  & .loading-balance-words{
+    display: inline-block;
+    font-size: 16px;
+    font-weight: 500;
+    color: #999;
+  }
+}
+@keyframes ani-demo-spin {
+  from { transform: rotate(0deg);}
+  50%  { transform: rotate(180deg);}
+  to   { transform: rotate(360deg);}
+}
 </style>

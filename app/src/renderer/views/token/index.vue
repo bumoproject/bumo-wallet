@@ -2,9 +2,9 @@
   <section>
     <div class="page-content">
       <div class="token-tab">
-        <div v-for="(item, index) in tokenList" class="token-tab-item" 
+        <div v-for="(item, index) in tokenList" class="token-tab-item" :key="index"
              :class="currentTab === item.assetCode  && currentTokenAddress === item.issuerAddress ? 'token-tab-item-active' : ''"
-             @click="handleTabClick(item.assetCode, item.issuerAddress)">
+             @click="handleTabClick(item.assetCode, item.issuerAddress, item.decimals)">
              <img v-if="item.icon" class="token-tab-img" :src="item.icon" />
              <img v-else class="token-tab-img" src="../../assets/img/token-icon-repeat.png" />
              <div>{{item.assetCode}}</div>
@@ -13,7 +13,7 @@
         </div>
       </div>
       <div class="token-tab-content">
-        <token-content :currentToken="currentTab" :currentTokenAddress="currentTokenAddress"></token-content>
+        <token-content :currentTokenDecimals="currentTokenDecimals" :currentToken="currentTab" :currentTokenAddress="currentTokenAddress"></token-content>
       </div>
     </div>
   </section>
@@ -30,6 +30,7 @@ export default {
     return {
       currentTab: '',
       currentTokenAddress: '',
+      currentTokenDecimals: 0,
       tokenList: []
     }
   },
@@ -43,9 +44,10 @@ export default {
     this.getTokenList()
   },
   methods: {
-    handleTabClick (token, addr) {
+    handleTabClick (token, addr, decimals) {
       this.currentTab = token
-      this.currentTokenAddress = addr
+      this.currentTokenAddress = addr || ''
+      this.currentTokenDecimals = decimals || 0
     },
     getTokenList () {
       var that = this
@@ -53,6 +55,7 @@ export default {
         address: that.loginAccount.address
       }
       accountService.getTokenList(reqData).then((respData) => {
+        // console.log(respData)
         if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
           return
         }
@@ -63,6 +66,7 @@ export default {
         } else {
           that.currentTab = that.$route.query.tokenType.split('-')[0]
           that.currentTokenAddress = that.$route.query.tokenType.split('-')[1]
+          that.currentTokenDecimals = that.$route.query.tokenType.split('-')[2] - 0
         }
       })
     }

@@ -1,0 +1,57 @@
+{
+    "db": {
+        "account_path": "data/account.db",
+        "ledger_path": "data/ledger.db",
+        "keyvalue_path": "data/keyvalue.db"
+    },
+    "p2p": {
+        "network_id": 30000,
+        "consensus_network": {
+            "heartbeat_interval": 60,
+            "listen_port": 36001,
+            "target_peer_connection": 50,
+			"max_connection": 20000,
+			"connect_timeout": 5,
+            "known_peers": ["127.0.0.1:46001"]
+        }
+    },
+    "webserver": {
+        "listen_addresses": "0.0.0.0:36002",
+		"index_name": "",
+		"directory": "web/",
+		"ssl_enable": false,
+		"query_limit": 1000,
+		"multiquery_limit": 100,
+		"thread_count": 8
+    },
+    "wsserver": {
+        "listen_address": "0.0.0.0:36003"
+    },
+    "ledger": {
+	"validation_address": "buQBwe7LZYCYHfxiEGb1RE9XC9kN2qrGXWCY",
+        "validation_private_key": "66932f19d5be465ea9e7cfcb3ea7326d81953b9f99bc39ddb437b5367937f234b866695e1aae9be4bae27317c9987f80be882ae3d2535d4586deb3645ecd7e54",
+        "max_trans_per_ledger": 10000,
+        "hardfork_points": [],
+		"tx_pool":{
+			"queue_limit": 10240,
+			"queue_per_account_txs_limit": 64
+		}
+    },
+    "genesis": {
+        "account": "buQs9npaCq9mNFZG18qu88ZcmXYqd6bqpTU3",
+	"slogan" : "a new era of value",
+        "fees": {
+            "base_reserve": 10000000,
+            "gas_price": 1000
+        },
+        "validators": ["buQBwe7LZYCYHfxiEGb1RE9XC9kN2qrGXWCY"]
+    },
+    "logger": {
+        "path": "log/bumo.log",
+        "dest": "FILE|STDOUT|STDERR",
+        "level": "INFO|WARNING|ERROR|FATAL",
+        "time_capacity": 1,
+        "size_capacity": 10,
+        "expire_days": 10
+    }
+}

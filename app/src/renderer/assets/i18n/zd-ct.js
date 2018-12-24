@@ -223,6 +223,7 @@ export default {
   'token': {
     'content': {
       'overallBalance': {
+        'loadingBalance': '余額獲取中...',
         'title': '余額',
         'accountAddress': '賬戶地址',
         'copyBtn': '復制',
@@ -703,7 +704,9 @@ export default {
       'notNum': '轉賬數量應為數字',
       'numTooBig': '數量過大！',
       'numLimit': '轉賬數量應大於0,最多支持小數點後8位',
-      'tokenNum': '轉賬數量應為正整數'
+      'tokenNum': '轉賬數量應為正整數',
+      'decimals': '轉賬數量應大於0,最多支持小數點後',
+      'decimalsUnit': '位'
     },
     'fee': {
       'empty': '交易費用不能為空',
@@ -741,7 +744,8 @@ export default {
       'SUBMIT_TX_ERROR': '提交失敗',
       'NOT_NORMAL_ACCOUNT': '付款賬戶僅支持普通賬戶地址',
       'NOT_UNIT_ACCOUNT': '付款賬戶僅支持聯名賬戶地址',
-      'NET_OFFLINE': '網絡不可用，請在聯網情況下進行操作'
+      'NET_OFFLINE': '網絡不可用，請在聯網情況下進行操作',
+      'NETWORK_ERROR': '網絡不可用'
     }
   },
   'msg': {

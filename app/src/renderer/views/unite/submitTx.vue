@@ -28,7 +28,7 @@
             <div class="ost-card-item-content ost-card-item-content-special">{{txInfo.params.destAddress}}</div>
           </div>
           <div class="ost-card-item ost-card-item-special">
-            <div class="ost-card-item-name ost-card-item-name-special">{{$t('unite.submitTx.parserDetail.txAmount')}} (BU)</div>
+            <div class="ost-card-item-name ost-card-item-name-special">{{$t('unite.submitTx.parserDetail.txAmount')}} ({{txInfo.params.code || 'BU'}})</div>
             <div class="ost-card-item-content ost-card-item-content-special">{{txInfo.params.amount}}</div>
           </div>
           <div class="ost-card-item ost-card-item-special">

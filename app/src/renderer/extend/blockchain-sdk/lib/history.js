@@ -53,22 +53,24 @@ db.run(
   'status INTEGER NOT NULL)'
 );
 
+// db.run('DROP TABLE ' + tableTokenList);
+db.run('Drop table if exists ' + tableTokenList );
+
 db.run(
     'Create table if not exists ' + tableTokenList + ' (' +
     'id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
     'asset_code TEXT NOT NULL, ' +
     'issuer_address TEXT NOT NULL, ' +
     'icon TEXT, ' +
+    'decimals INTEGER NOT NULL, ' +
     'type INTEGER NOT NULL, ' +
     'status INTEGER NOT NULL)'
 );
 
 db.run(`CREATE UNIQUE INDEX if not exists index_name on ${tableTokenList} (asset_code, issuer_address)`);
 
-let tokenListRows = db.exec(`select id, asset_code, issuer_address from ${tableTokenList}`);
+let tokenListRows = db.exec(`select id, asset_code, issuer_address, decimals from ${tableTokenList}`);
 
-if (tokenListRows.length === 0) {
-  // 初始化token list
   let options = {
     method: 'POST',
     uri: `http://${conf.connections.wallet_host}:${conf.connections.wallet_port}/token/list`,
@@ -85,46 +87,12 @@ if (tokenListRows.length === 0) {
       options.body.pageSize = parsedBody.data.page.pageTotal;
       rp(options).then(body => {
         body.data.tokenList.forEach(data => {
-          const stmt = db.prepare(`insert into ${tableTokenList} values ( null, :assetCode, :issuerAddress, :icon, :type, 1 )`);
-          stmt.getAsObject({
-            ':assetCode' : data.assetCode,
-            ':issuerAddress' : data.issuerAddress,
-            ':icon' : data.icon || '',
-            ':type' : data.type,
-          });
-        });
-        updateDB();
-      }).catch(err => {
-        throw err;
-      });
-    }
-  })
-  .catch(function (err) {
-    throw err;
-  });
-} else {
-  // 追加新的内容
-  let options = {
-    method: 'POST',
-    uri: `http://${conf.connections.wallet_host}:${conf.connections.wallet_port}/token/list`,
-    body: {
-      pageStart: 1,
-      pageSize: 1,
-    },
-    json: true,
-  };
-
-  rp(options)
-  .then(function (parsedBody) {
-    if (parsedBody.data.page.pageTotal) {
-      options.body.pageSize = parsedBody.data.page.pageTotal;
-      rp(options).then(body => {
-        body.data.tokenList.forEach(data => {
-          const stmt = db.prepare(`REPLACE INTO ${tableTokenList} (id, asset_code, issuer_address, icon, type, status) VALUES ( null, :assetCode, :issuerAddress, :icon, :type, 1 )`);
+          const stmt = db.prepare(`REPLACE INTO ${tableTokenList} (id, asset_code, issuer_address, icon, decimals, type, status) VALUES ( null, :assetCode, :issuerAddress, :icon, :decimals, :type, 1 )`);
           stmt.getAsObject({
             ':assetCode' : data.assetCode,
             ':issuerAddress' : data.issuerAddress,
             ':icon' : data.icon,
+            ':decimals' : data.decimals || 0,
             ':type' : data.type,
           });
         });
@@ -137,8 +105,6 @@ if (tokenListRows.length === 0) {
   .catch(function (err) {
     throw err;
   });
-}
-
 
 
 // ==================================================
@@ -494,7 +460,7 @@ export default {
           },
         });
       } else {
-        let tx = db.exec(`select asset_code, icon, issuer_address from ${tableTokenList} limit 0, 100`);
+        let tx = db.exec(`select asset_code, icon, issuer_address, decimals from ${tableTokenList} limit 0, 100`);
         return rs({
           'errCode': constUtil.ERRORS.SUCCESS.CODE,
           'msg': constUtil.ERRORS.SUCCESS.MSG,
@@ -793,6 +759,7 @@ function formatTokenType(listTx) {
     obj.assetCode = item[0];
     obj.icon = item[1];
     obj.issuerAddress = item[2];
+    obj.decimals = item[3];
     arr.push(obj);
   });
 

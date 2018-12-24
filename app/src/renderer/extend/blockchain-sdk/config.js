@@ -2,8 +2,12 @@ import cfg from '../../../config'
 export default {
     'connections': {
         'http_host': '127.0.0.1',
+        // 'http_host': '52.80.12.8',
+        // 'http_host': '52.80.206.194',
         'http_port': '16002',
         'ws_host': '127.0.0.1',
+        // 'ws_host': '52.80.12.8',
+        // 'ws_host': '52.80.206.194',
         'ws_port': '16003',
         'retry_times': -1,
         'retry_wait_time': 5000,

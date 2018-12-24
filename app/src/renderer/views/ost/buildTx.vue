@@ -136,6 +136,7 @@
         accountBalance: 0,
         availableAssetAmount: 0,
         destAddrValidate: '',
+        blobBuildIng: false,
         sendAssetData: {
           srcAddr: '',
           destAddr: '',
@@ -298,11 +299,15 @@
           this.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
           return
         }
+        if (this.blobBuildIng) {
+          return
+        }
         var that = this
         this.$refs.sendAssetData.validate((valid) => {
           if (valid) {
             that.showBuildTxDialog = true
             var reqData = {
+              currentTokenType: 'BU',
               srcAddr: that.sendAssetData.srcAddr,
               destAddr: that.sendAssetData.destAddr,
               sentAssetAmount: that.sendAssetData.txAmount,
@@ -310,7 +315,9 @@
               fee: that.sendAssetData.fee,
               seqOffset: -1
             }
+            that.blobBuildIng = true
             txService.buildTxBlob(reqData).then(respData => {
+              that.blobBuildIng = false
               if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
                 that.$Message.error({
                   content: that.$t(respData.msg),
@@ -323,6 +330,7 @@
                 that.$emit('buildTxSucc', that.sendAssetData)
               }
             }).catch(data => {
+              that.blobBuildIng = false
               console.log('err data:', data)
             })
           } else {
@@ -343,12 +351,15 @@
       },
       getAvailableAssetAmount () {
         var that = this
+        if (that.sendAssetData.srcAddr.trim() === '' || that.sendAssetData.srcAddr === null) {
+          return
+        }
         var reqData = {
           walletAddress: that.sendAssetData.srcAddr
         }
         accountService.getAccountTokenBalance(reqData).then(respData => {
           if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
-            that.$Message.error(that.$t(respData.msg))
+            that.$Message.error(that.$t('errorUtil.ERRORS.NETWORK_ERROR'))
             return
           }
           if ((respData.data.tokenBalance - 0) > (config.reserveAccountBalance - 0)) {

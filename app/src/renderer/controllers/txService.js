@@ -4,6 +4,7 @@ import baseService from '../controllers/baseService'
 import tool from '../utils/tools'
 export default {
   sendToken (opts) {
+    opts.fee = opts.fee + ''
     var respData = {
       errCode: 0,
       msg: 'success',
@@ -26,7 +27,16 @@ export default {
           gasPrice: gasPrice,
           pwd: opts.accountPwd
         }
-        console.info('bumo wallet sendToken.req: ' + JSON.stringify(sendTokenReqOpts))
+        var printSendTokenReqOpts = {
+          accountNick: opts.walletNick,
+          srcAddress: opts.walletAddress,
+          destAddress: opts.destAddr,
+          amount: opts.sentAssetAmount,
+          note: opts.note,
+          feeLimit: opts.fee,
+          gasPrice: gasPrice
+        }
+        console.info('bumo wallet sendToken.req: ' + JSON.stringify(printSendTokenReqOpts))
         bSdk.tx.sendToken(sendTokenReqOpts).then(sendTokenRespData => {
           console.error('bumo wallet sendToken.resp: ' + JSON.stringify(sendTokenRespData))
           if (errorUtil.ERRORS.SUCCESS.CODE === sendTokenRespData.errCode) {
@@ -88,7 +98,8 @@ export default {
             destAddress: opts.destAddr,
             amount: opts.sentAssetAmount,
             issuer: opts.issuer,
-            code: opts.code
+            code: opts.code,
+            decimals: opts.decimals || 0
           }
         })
         var sendTokenReqOpts = {
@@ -101,7 +112,16 @@ export default {
           pwd: opts.accountPwd,
           ops: operation
         }
-        console.info('bumo wallet sendToken.req: ' + JSON.stringify(sendTokenReqOpts))
+        var printSendTokenReqOpts = {
+          type: 'deal',
+          accountNick: opts.walletNick,
+          srcAddress: opts.walletAddress,
+          note: opts.note,
+          feeLimit: fee,
+          gasPrice: gasPrice,
+          ops: operation
+        }
+        console.info('bumo wallet sendToken.req: ' + JSON.stringify(printSendTokenReqOpts))
         bSdk.tx.transaction(sendTokenReqOpts).then(sendTokenRespData => {
           console.log('bumo wallet sendToken.resp: ' + JSON.stringify(sendTokenRespData))
           if (errorUtil.ERRORS.SUCCESS.CODE === sendTokenRespData.errCode) {
@@ -153,15 +173,18 @@ export default {
       errCode: 0,
       msg: 'success',
       data: {
-        tokenBalance: 0
+        tokenBalance: 0,
+        assetCode: opts.assetCode
       }
     }
     return new Promise((resolve, reject) => {
       var reqWalletAccountTokenBalanceOpts = {
         address: opts.walletAddress,
         assetCode: opts.assetCode,
-        issuerAddress: opts.issuerAddress
+        issuerAddress: opts.issuerAddress,
+        decimals: opts.decimals || 0
       }
+      // console.log('reqWalletAccountTokenBalanceOpts:' + JSON.stringify(reqWalletAccountTokenBalanceOpts))
       bSdk.tx.getTokenBalance(reqWalletAccountTokenBalanceOpts).then(respGetAccountTokenBalanceData => {
         if (errorUtil.ERRORS.SUCCESS.CODE === respGetAccountTokenBalanceData.errCode) {
           respData.data.tokenBalance = respGetAccountTokenBalanceData.data.amount
@@ -184,10 +207,12 @@ export default {
         pageStartIndex: opts.pageStartIndex,
         pageSize: opts.pageSize,
         assetCode: opts.assetCode,
-        issuerAddress: opts.issuerAddress
+        issuerAddress: opts.issuerAddress,
+        decimals: opts.decimals || 0
       }
       bSdk.tx.getTokenList(getAccountTxListReqOpts).then(respGetTokenlistData => {
-//      console.log('bumo wallet respGetTokenlistData' + JSON.stringify(respGetTokenlistData))
+        console.log(respGetTokenlistData)
+        // console.log('bumo wallet respGetTokenlistData' + JSON.stringify(respGetTokenlistData))
         if (errorUtil.ERRORS.SUCCESS.CODE === respGetTokenlistData.errCode) {
           respData.data = respGetTokenlistData.data
         }
@@ -222,7 +247,7 @@ export default {
       var getBLockChainConnectCountReqOpts = {
         eventName: 'peer_connections',
         callback: function (respGetBLockChainConnectCountData) {
-          // console.log('bumo wallet respGetBLockChainConnectCountData: ' + JSON.stringify(respGetBLockChainConnectCountData))
+          console.log('bumo wallet respGetBLockChainConnectCountData: ' + JSON.stringify(respGetBLockChainConnectCountData))
           respData.data.blockConnectionSize = respGetBLockChainConnectCountData.connectionSize
           store.commit('BLOCK_CONNETCTION_SIZE', respData.data.blockConnectionSize)
           resolve(respData)
@@ -369,22 +394,44 @@ export default {
       var gasPrice = null
       baseService.getSendTokenGasPrice(opts.srcAddr, opts.destAddr, opts.sentAssetAmount, opts.note, opts.fee, opts.signersCount).then(respSendTokenGasPriceData => {
         gasPrice = respSendTokenGasPriceData
-        var reqData = {
-          type: 'blob',
-          srcAddress: opts.srcAddr,
-          ops: [{
-            type: 'paycoin',
-            params: {
-              destAddress: opts.destAddr,
-              amount: opts.sentAssetAmount
-            }
-          }],
-          note: opts.note,
-          feeLimit: opts.fee,
-          gasPrice: gasPrice,
-          seqOffset: opts.seqOffset
+        var reqData = {}
+        if (opts.currentTokenType === 'BU') {
+          reqData = {
+            type: 'blob',
+            srcAddress: opts.srcAddr,
+            ops: [{
+              type: 'paycoin',
+              params: {
+                destAddress: opts.destAddr,
+                amount: opts.sentAssetAmount
+              }
+            }],
+            note: opts.note,
+            feeLimit: opts.fee,
+            gasPrice: gasPrice,
+            seqOffset: opts.seqOffset
+          }
+        } else {
+          reqData = {
+            type: 'blob',
+            srcAddress: opts.srcAddr,
+            ops: [{
+              type: 'payasset',
+              params: {
+                destAddress: opts.destAddr,
+                amount: opts.sentAssetAmount,
+                issuer: opts.currentTokenIssuer,
+                code: opts.currentTokenType,
+                decimals: opts.currentTokenDecimals
+              }
+            }],
+            note: opts.note,
+            feeLimit: opts.fee,
+            gasPrice: gasPrice,
+            seqOffset: opts.seqOffset
+          }
         }
-        console.log('bumo wallet buildTxBlob.req' + JSON.stringify(reqData))
+        console.log('bumo wallet buildTxBlob.req: ' + JSON.stringify(reqData))
         bSdk.tx.transaction(reqData).then(sdkRespData => {
           console.log('bumo wallet buildTxBlob.resp' + JSON.stringify(sdkRespData))
           if (errorUtil.ERRORS.SUCCESS.CODE === sdkRespData.errCode) {
@@ -395,6 +442,8 @@ export default {
             console.error('send token fail ' + sdkRespData.msg)
           }
           resolve(respData)
+        }).catch(e => {
+          reject()
         })
       })
     })
@@ -413,7 +462,11 @@ export default {
         accountNick: opts.accountNick,
         pwd: opts.walletAccountPwd
       }
-      console.log('bumo wallet signTx.req' + JSON.stringify(reqData))
+      var printReqData = {
+        transactionString: opts.txBlob,
+        accountNick: opts.accountNick
+      }
+      console.log('bumo wallet signTx.req' + JSON.stringify(printReqData))
       bSdk.tx.transactionSign(reqData).then(sdkRespData => {
         console.log('bumo wallet signTx.resp' + JSON.stringify(sdkRespData))
         if (errorUtil.ERRORS.SUCCESS.CODE === sdkRespData.errCode) {

@@ -3,9 +3,21 @@ import historyRecord from '../history';
 import constUtil from '../constants';
 import commonUtil from '../util';
 import account from '../account/index';
-const rp = require('request-promise');
 import conf from '../../config';
 import JSONBig from 'json-bigint';
+import { BigNumber } from 'bignumber.js';
+const rp = require('request-promise');
+const { getTokenDecimals, getBalanceAndTokens } = require('../token');
+const fs = require('fs')
+import dbLib from 'sql.js';
+const tableTokenList = 'blockchain_token_list';
+let dbFile = null;
+
+if (fs.existsSync(conf.store.db_file)) {
+  dbFile = fs.readFileSync(conf.store.db_file);
+}
+
+let db = new dbLib.Database(dbFile);
 
 export default {
 
@@ -30,6 +42,27 @@ export default {
       commonUtil.handleError(err);
     }
   },
+  /**
+   * 获取账户的余额及token列表 包含（amount，code， issue, decimals）
+   * @param  {String} address
+   * @return {Object}
+   */
+  async getBalanceAndTokens(address) {
+    try {
+      if (typeof address !== 'string') {
+        return (commonUtil.packageError(constUtil.ERRORS.ERR_PARAMS));
+      }
+      const tokens = await getBalanceAndTokens(address)
+      return ({
+        errCode: constUtil.ERRORS.SUCCESS.CODE,
+        msg: constUtil.ERRORS.SUCCESS.MSG,
+        data: tokens
+      });
+    } catch (err) {
+      return commonUtil.handleError(err);
+    }
+  },
+
   /**
    * 转移token
    * @param {object} params               [必须]参数对象
@@ -206,13 +239,26 @@ export default {
           })) {
         return (commonUtil.packageError(constUtil.ERRORS.ERR_PARAMS));
       }
-      let data = await historyRecord.getTransactionForToken(
+      let info = await historyRecord.getTransactionForToken(
           params.pageStartIndex,
           params.pageSize,
           params.assetCode,
           params.issuerAddress,
       );
-      return (data);
+
+      let decimals = params.decimals && (typeof params.decimals === 'number') ? params.decimals : 0;
+ 
+      if (info.errCode === 0) {
+        const txs = info.data.txs;
+        if (Array.isArray(txs) && txs.length > 0) {
+          const items  = txs.map(item => {
+            item.amount = new BigNumber(item.amount).dividedBy(Math.pow(10, decimals)).toString(10);
+            return item;
+          });
+          info.data.txs = items
+        }
+      }
+      return (info);
     } catch (err) {
       return (commonUtil.handleError(err));
     }
@@ -236,16 +282,22 @@ export default {
         // json: true
       };
 
+      let decimals = params.decimals && (typeof params.decimals === 'number') ? params.decimals : 0;
+
       let data = await rp(options);
       data = JSONBig.parse(data);
       if (data.error_code === 0 && data.result && data.result.length > 0 ) {
         let amount = '0';
-        data.result.forEach(item => {
-          if (item.key.code === params.assetCode &&
+
+        if (Array.isArray(data.result) && data.result.length > 0) {
+          data.result.forEach(item => {
+            if (item.key.code === params.assetCode &&
               item.key.issuer === params.issuerAddress) {
-            return amount = item.amount.toString();
-          }
-        });
+              // return amount = item.amount.toString();
+              return amount = new BigNumber(item.amount).dividedBy(Math.pow(10, decimals)).toString(10);
+            }
+          });
+        }
 
         return {
           'errCode': constUtil.ERRORS.SUCCESS.CODE,
@@ -259,7 +311,7 @@ export default {
           'errCode': constUtil.ERRORS.SUCCESS.CODE,
           'msg': constUtil.ERRORS.SUCCESS.MSG,
           'data': {
-            amount: 0
+            amount: '0'
           },
         };
       }
@@ -657,6 +709,45 @@ export default {
               'signers': trans.sign
             }
           });
+        case 'payasset':
+          let amount = trans.tx.ops[0]['params']['amount'];
+          let code = trans.tx.ops[0]['params']['code'];
+          let issuer = trans.tx.ops[0]['params']['issuer'];
+          let decimals = 0
+
+          const decimalsInfo = await getTokenDecimals({
+            code,
+            issuer,
+          })
+
+          if (decimalsInfo) {
+            amount = new BigNumber(amount).dividedBy(Math.pow(10, decimalsInfo.decimals)).toString(10)
+            decimals = decimalsInfo.decimals
+          }
+          
+          return ({
+            errCode: constUtil.ERRORS.SUCCESS.CODE,
+            msg: constUtil.ERRORS.SUCCESS.MSG,
+            data: {
+              type: 'payasset',
+              params: {
+                srcAddress: trans.tx.srcAddress,
+                nonce: trans.tx.nonce,
+                hash: trans.tx.hash,
+                feeLimit: commonUtil.unitConvert(
+                  trans.tx.feeLimit, constUtil.BUILDIN_UNIT_OUT),
+                gasPrice: trans.tx.gasPrice,
+                note: trans.tx.note,
+                destAddress: trans.tx.ops[0]['params']['destAddress'],
+                amount,
+                code,
+                issuer,
+                decimals,
+                isIn: 1,
+              },
+              signers: trans.sign
+            }
+          });
         case 'metadata':
           return ({
             'errCode': constUtil.ERRORS.SUCCESS.CODE,
@@ -842,13 +933,18 @@ export default {
                 'destAddress': 'string',
                 'amount': 'string',
                 'issuer': 'string',
-                'code': 'string'
+                'code': 'string',
+                // decimals: 'number'
               })) {
+              const decimals = (element.params.decimals && typeof element.params.decimals === 'number')
+                ? element.params.decimals
+                : 0;
               p.push([constUtil.TX_TYPE.PAYASSET.TYPE, {
                 'dest': element.params.destAddress,
-                'amount': commonUtil.unitConvert(
-                  element.params.amount,
-                  0, true),
+                // 'amount': commonUtil.unitConvert(
+                //   element.params.amount,
+                //   0, true),
+                amount: new BigNumber(element.params.amount).times(Math.pow(10, decimals)).toString(10),
                 'issuer': element.params.issuer,
                 'code': element.params.code,
               }]);
@@ -957,6 +1053,7 @@ export default {
         params.note,
         params.seqOffset,
         p);
+      
       switch (params.type) {
         case 'fee':
           return ({

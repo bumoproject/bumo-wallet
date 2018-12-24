@@ -98,7 +98,7 @@
                 <label>{{$t('mySet.versionInfo.currentVersion')}}</label>
                 <div class="cont">
                   <b>V{{ver}}</b>
-                  <div class="last-version-wraper" v-if="lastVersion.ver === ver">{{$t('mySet.versionInfo.nowIsLast')}}</div>
+                  <div class="last-version-wraper" v-if="!showUpdateVer">{{$t('mySet.versionInfo.nowIsLast')}}</div>
                   <div class="has-new-ver-con" v-else>
                     {{$t('mySet.versionInfo.content')}}V{{lastVersion.ver}}, {{$t('mySet.versionInfo.clickThere')}}<a @click="downloadInstallPackage" >{{$t('mySet.versionInfo.updateNow')}}</a>
                   </div>
@@ -149,6 +149,9 @@ export default {
   computed: {
     loginAccount () {
       return this.$store.state.recentLoginWalletAccount
+    },
+    showUpdateVer () {
+      return tools.cprVersion(this.ver, this.lastVersion.ver)
     }
   },
   data () {

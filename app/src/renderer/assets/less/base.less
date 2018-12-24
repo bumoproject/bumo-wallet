@@ -30,6 +30,32 @@
 
 /* borderbox */
 .borderbox{box-sizing:border-box;}
+.tx-blob-form{
+  & .ivu-select-visible .ivu-select-selection{
+    box-shadow: none;
+  }
+  & .ivu-select-single .ivu-select-selection{
+    border: 1px solid #dddee1;
+    height: 36px;
+  }
+  & .ivu-form-item-error .ivu-select-selection{
+    border-color: #ed3f14;
+    &:hover{
+      border-color: #ed3f14;
+    }
+  }
+  & .ivu-select-single .ivu-select-selection .ivu-select-placeholder{
+    height: 34px;
+    line-height: 34px;
+  }
+  & .ivu-select-single .ivu-select-selection .ivu-select-selected-value{
+    height: 34px;
+    line-height: 34px;
+  }
+  & .ivu-select-selection:hover{
+    border-color: #00D080;
+  }
+}
 
 
 
