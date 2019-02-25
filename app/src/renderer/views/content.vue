@@ -17,7 +17,7 @@
             <div style="min-height: 32px;" v-if="!blockStatus">
               <span v-if="asset.pointPart !== ''">
                 <span>{{asset.pointPart ? asset.intPart : asset.intPart}}</span>
-                <span :class="{'balance-point-part': asset.intPart !== '0'}">{{asset.pointPart ? '.' + asset.pointPart: ''}}</span>
+                <span :class="{'balance-point-part': asset.intPart !== '0'}">{{asset.pointPart ? '.' + asset.pointPart : ''}}</span>
                 <span> BU</span>
               </span>
               <span v-else class="loading-balance">
@@ -221,9 +221,10 @@ export default {
         }
         that.asset.balance = respData.data.tokenBalance
         that.asset.intPart = that.asset.balance.split('.')[0]
-        that.asset.pointPart = that.asset.balance.split('.')[1]
+        that.asset.pointPart = that.asset.balance.split('.')[1] ? that.asset.balance.split('.')[1] : ''
         that.asset.tokenReserve = respData.data.tokenReserve
         that.asset.txs = respData.data.txs
+        console.log(that.asset.txs)
       })
     },
     loadTxData () {
@@ -404,4 +405,7 @@ export default {
 .ivu-page .ivu-page-simple{text-align: center;padding-top: 20px;}
 .ivu-page-simple .ivu-page-simple-pager{display: none;}
 .show-tx-detail-wraper span.tx-note{float: inherit;word-break: break-all;}
+.index-cont .asset-panel .balance-point-part{
+  margin-left: -7px;
+}
 </style>
