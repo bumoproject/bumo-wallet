@@ -15,7 +15,7 @@
           <b class="banlace">
             <!-- :class="{'balance-point-part': ((asset.intPart === '0') && (asset.pointPart === undefined))}" -->
             <div style="min-height: 32px;" v-if="!blockStatus">
-              <span v-if="asset.pointPart !== ''">
+              <span v-if="asset.intPart !== ''">
                 <span>{{asset.pointPart ? asset.intPart : asset.intPart}}</span>
                 <span :class="{'balance-point-part': asset.intPart !== '0'}">{{asset.pointPart ? '.' + asset.pointPart : ''}}</span>
                 <span> BU</span>
@@ -219,6 +219,7 @@ export default {
         if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
           return
         }
+        // console.log(respData)
         that.asset.balance = respData.data.tokenBalance
         that.asset.intPart = that.asset.balance.split('.')[0]
         that.asset.pointPart = that.asset.balance.split('.')[1] ? that.asset.balance.split('.')[1] : ''
