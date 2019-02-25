@@ -2,7 +2,7 @@
   "name": "bumo-wallet",
   "version": "1.2.0",
   "description": "bumo wallet",
-  "productName": "BumoWallet",
+  "productName": "BumoWallet-Single",
   "scripts": {
     "build": "node tasks/release.js",
     "build:clean": "cross-env PLATFORM_TARGET=clean node tasks/release.js",
