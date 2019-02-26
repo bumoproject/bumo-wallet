@@ -11,6 +11,10 @@
 process.env.NODE_ENV = 'development'
 process.env.BABEL_ENV = 'main'
 
+if (process.env.NETWORK_TYPE === 'Lite') {
+  process.env.NETWORK_TYPE === 'Lite'
+}
+
 require('babel-register')({
   ignore: /node_modules/
 })

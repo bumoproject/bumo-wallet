@@ -78,7 +78,13 @@ export default class Application {
     if (process.env.NODE_ENV !== 'development' && process.platform === 'darwin') {
       this.copyBuchain()
     }
-    this.startBumo()
+    console.log(process.env.NETWORK_TYPE)
+    if (process.env.NETWORK_TYPE === 'Lite') {
+      console.log('Bumo do not launch!!!')
+    } else {
+      this.startBumo()
+      console.log('Bumo has start synchronous....')
+    }
     this.registerShortcut()
     this.setAppMenu()
   }

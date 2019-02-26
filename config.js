@@ -8,7 +8,7 @@ let config = {
   name: 'BumoWallet',
   // Use ESLint (extends `standard`)
   // Further changes can be made in `.eslintrc.js`
-  eslint: true,
+  eslint: false,
 
   // webpack-dev-server port
   port: 36007,
