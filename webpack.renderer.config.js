@@ -141,14 +141,12 @@ if (process.env.NODE_ENV !== 'production') {
 /**
  * Adjust rendererConfig for production settings
  */
-if (process.env.NETWORK_TYPE === 'Lite') {
-  console.log(process.env.NETWORK_TYPE + '-------NETWORK_TYPE----')
-  rendererConfig.plugins.push(
-    new webpack.DefinePlugin({
-      'process.env.NETWORK_TYPE': process.env.NETWORK_TYPE === 'Lite' ? JSON.stringify(process.env.NETWORK_TYPE) : '"Full"'
-    })
-  )
-}
+console.log(process.env.NETWORK_TYPE + '-------NETWORK_TYPE----')
+rendererConfig.plugins.push(
+  new webpack.DefinePlugin({
+    'process.env.NETWORK_TYPE': (process.env.NETWORK_TYPE === 'Lite' || process.env.NETWORK_TYPE === 'test') ? JSON.stringify(process.env.NETWORK_TYPE) : '"Full"'
+  })
+)
 
 if (process.env.NODE_ENV === 'production') {
   rendererConfig.devtool = ''

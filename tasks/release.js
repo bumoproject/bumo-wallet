@@ -16,7 +16,7 @@ if (process.env.PLATFORM_TARGET === 'clean') {
  */
 function pack () {
   console.log('\x1b[33mBuilding webpack in production mode...\n\x1b[0m')
-  let pack = process.env.NETWORK_TYPE === 'Lite' ? exec('npm run pack-Lite') : exec('npm run pack')
+  let pack = process.env.NETWORK_TYPE === 'Lite' ? exec('npm run pack-Lite') : (process.env.NETWORK_TYPE === 'test' ? exec('npm run pack-test') : exec('npm run pack'))
 
   pack.stdout.on('data', data => console.log(data))
   pack.stderr.on('data', data => console.error(data))

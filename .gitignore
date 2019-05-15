@@ -20,3 +20,4 @@ buchain/mac/log/
 buchain/win/data/
 buchain/win/log/
 .idea
+.project

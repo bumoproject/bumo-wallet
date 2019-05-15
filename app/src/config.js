@@ -14,6 +14,12 @@ const liteConnections = {
   'ws_host': '52.80.12.8',
   'ws_port': '6003'
 }
+const testConnections = {
+  'http_host': '127.0.0.1',
+  'http_port': '26002',
+  'ws_host': '127.0.0.1',
+  'ws_port': '26003'
+}
 
 export default {
   name: process.env.NETWORK_TYPE === 'Lite' ? pkg.productName + '-Lite' : pkg.productName + '-Full',
@@ -27,16 +33,16 @@ export default {
     port: 80,
     browser: {
       // domain: 'https://explorer.bumotest.io/',
-      domain: 'https://explorer.bumot.io/',
+      domain: process.env.NETWORK_TYPE === 'test' ? 'https://explorer.bumotest.io/' : 'https://explorer.bumot.io/',
       port: 80
     },
     wallet: {
       // serverHost: 'wallet-s.bumodev.io',
-      serverHost: 'wallet-s.bumo.io',
+      serverHost: process.env.NETWORK_TYPE === 'test' ? 'wallet-s.bumodev.io' : 'wallet-s.bumo.io',
       port: 80
     }
   },
-  connections: process.env.NETWORK_TYPE === 'Lite' ? liteConnections : fullConnections,
+  connections: process.env.NETWORK_TYPE === 'Lite' ? liteConnections : (process.env.NETWORK_TYPE === 'test' ? testConnections : fullConnections),
   sdk: {
     syncNodeExePath: function () {
       let nodeExePath = null
