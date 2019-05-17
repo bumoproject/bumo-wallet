@@ -61,8 +61,14 @@ export default {
         }
         that.tokenList = respData.data.tokens
         if (!that.$route.query.tokenType) {
-          that.currentTab = respData.data.tokens[0].assetCode
-          that.currentTokenAddress = respData.data.tokens[0].issuerAddress
+          try {
+            that.currentTab = respData.data.tokens[0].assetCode
+            that.currentTokenAddress = respData.data.tokens[0].issuerAddress
+          } catch (e) {
+            console.log('----tokenListData----')
+            console.log(respData.data)
+            console.log('----tokenListData----')
+          }
         } else {
           that.currentTab = that.$route.query.tokenType.split('-')[0]
           that.currentTokenAddress = that.$route.query.tokenType.split('-')[1]
