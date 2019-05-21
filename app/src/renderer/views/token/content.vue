@@ -14,7 +14,7 @@
         <b class="banlace">
           <div style="min-height: 32px;" v-if="!blockStatus">
             <span v-if="!loadingBalance">
-              <span>{{asset.intPart | commafy}}</span>
+              <span>{{asset.intPart}}</span>
               <span v-if='asset.pointPart' class="balance-point-part">{{asset.pointPart ? '.' + asset.pointPart: ''}}</span>
               <span> {{currentToken}}</span>
             </span>
@@ -237,9 +237,10 @@ export default {
         // console.log(respData)
         if (errorUtil.ERRORS.SUCCESS.CODE === respData.errCode && respData.data.assetCode === that.currentToken) {
           that.loadingBalance = false
-          that.asset.balance = respData.data.tokenBalance
-          that.asset.intPart = that.asset.balance.split('.')[0]
-          that.asset.pointPart = that.asset.balance.split('.')[1]
+          that.asset.balance = respData.data.tokenBalance + ''
+          that.asset.intPart = that.asset.balance.split('.')[0] || that.asset.balance
+          that.asset.pointPart = that.asset.balance.split('.')[1] || ''
+          // console.log('resp-balance: ' + that.asset.balance)
         }
       })
     },

@@ -16,7 +16,7 @@
             <!-- :class="{'balance-point-part': ((asset.intPart === '0') && (asset.pointPart === undefined))}" -->
             <div style="min-height: 32px;" v-if="!blockStatus">
               <span v-if="asset.intPart !== ''">
-                <span>{{asset.intPart | commafy}}</span>
+                <span>{{asset.intPart}}</span>
                 <span v-if='asset.pointPart' class="balance-point-part">{{asset.pointPart ? '.' + asset.pointPart : ''}}</span>
                 <span> BU</span>
               </span>
@@ -220,12 +220,12 @@ export default {
           return
         }
         // console.log(respData)
-        that.asset.balance = respData.data.tokenBalance
-        that.asset.intPart = that.asset.balance.split('.')[0]
+        that.asset.balance = respData.data.tokenBalance + ''
+        that.asset.intPart = that.asset.balance.split('.')[0] || that.asset.balance
         that.asset.pointPart = that.asset.balance.split('.')[1] ? that.asset.balance.split('.')[1] : ''
         that.asset.tokenReserve = respData.data.tokenReserve
         that.asset.txs = respData.data.txs
-        console.log(that.asset.txs)
+        // console.log(respData.data)
       })
     },
     loadTxData () {
