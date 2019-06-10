@@ -28,7 +28,7 @@
               <Input v-model.trim="sendAssetData.note" :placeholder="$t('send.form.note.placeholder')" type="textarea" ></Input>
             </FormItem>
             <FormItem class="btn-main-inactive btn-main-active"  v-show="isSubmitBtnActive">
-              <Button @click="handleSubmit('sendAssetData')" 
+              <Button @click="handleGetNonce('sendAssetData')" 
                       type="primary" class="btn-main" long>
                       {{$t('send.form.nextBtn')}}
               </Button>
@@ -142,6 +142,7 @@ export default {
   data () {
     return {
       tokenList: [],
+      nonce: '',
       flag: false,
       submited: false,
       accountUnactive: 0,
@@ -372,6 +373,39 @@ export default {
     txPanelClick (e) {
       this.txPanel = e
     },
+    // get nonce
+    handleGetNonce (name) {
+      var that = this
+      var assetCode = 'BU', issuerAddr, decimals
+      if (that.sendAssetData.currentTokenType !== 'BU') {
+        assetCode = that.sendAssetData.currentTokenType.split('-')[0]
+        issuerAddr = that.sendAssetData.currentTokenType.split('-')[1]
+        decimals = that.sendAssetData.currentTokenType.split('-')[2] - 0
+      }
+      that.submited = true
+      that.$refs[name].validate((valid) => {
+        if (valid) {
+          let address = that.$store.state.recentLoginWalletAccount.address
+          txService.getNonce({
+            address
+          }).then(respData => {
+            console.log(respData)
+            if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
+              that.$Message.error({
+                content: that.$t(respData.msg),
+                duration: 3
+              })
+              return
+            } else {
+              that.nonce= respData.data.nonce
+              this.sendAssetConfirm = true
+            }
+          }).catch(data => {
+            console.log('err data:', data)
+          })
+        }
+      })
+    },
     handleSubmit (name) {
       this.submited = true
       this.$refs[name].validate((valid) => {
@@ -394,6 +428,10 @@ export default {
       }
       this.$refs[name].validate((valid) => {
         if (valid) {
+          if (!navigator.onLine) {
+            this.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
+            return
+          }
           var sendTokenReqOpts = {
             walletNick: that.$store.state.recentLoginWalletAccount.nick,
             walletAddress: that.$store.state.recentLoginWalletAccount.address,
@@ -405,7 +443,8 @@ export default {
             issuer: issuerAddr,
             code: assetCode,
             accountUnactive: that.accountUnactive,
-            decimals
+            decimals,
+            nonce: that.nonce
           }
           if (that.sendAssetData.currentTokenType === 'BU') {
             txService.sendToken(sendTokenReqOpts).then(respData => {

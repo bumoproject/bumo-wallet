@@ -95,6 +95,10 @@ export default {
     NET_OFFLINE: {
       CODE: 100121,
       MSG: '网络不可用，请在联网情况下进行操作'
+    },
+    INSERT_TX_TO_BUFFER_FAIL: {
+      CODE: 100122,
+      MSG: '当前有交易正在处理中，请稍后再试'
     }
   },
   ACCOUNT_ADDRESS_STATUS: {

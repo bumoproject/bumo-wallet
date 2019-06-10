@@ -3,6 +3,31 @@ import errorUtil from '../constants'
 import baseService from '../controllers/baseService'
 import tool from '../utils/tools'
 export default {
+  getNonce (opts) {
+    var respData = {
+      errCode: 0,
+      msg: 'success',
+      data: {
+        nonce: ''
+      }
+    }
+    return new Promise((resolve, reject) => {
+      var getNonceReqOpts = {
+        address: opts.address
+      }
+      console.info('bumo wallet getNonce.req: ' + JSON.stringify(getNonceReqOpts))
+      bSdk.tx.getNonce(getNonceReqOpts).then(getNonceData => {
+        console.error('bumo wallet getNonce.resp: ' + JSON.stringify(getNonceData))
+        if (errorUtil.ERRORS.SUCCESS.CODE === getNonceData.errCode) {
+          respData.data.nonce = getNonceData.data.nonce
+        } else {
+          respData.errCode = errorUtil.ERRORS.NETWORK_ERROR.CODE
+          respData.msg = 'errorUtil.ERRORS.NETWORK_ERROR'
+        }
+        resolve(respData)
+      })
+    })
+  },
   sendToken (opts) {
     opts.fee = opts.fee + ''
     var respData = {
@@ -51,6 +76,9 @@ export default {
           } else if (errorUtil.BUMO_ERROR.ACCOUNT_LOW_RESERVE === sendTokenRespData.errCode) {
             respData.errCode = errorUtil.ERRORS.ACCOUNT_LOW_RESERVE_ERROR.CODE
             respData.msg = 'errorUtil.ERRORS.ACCOUNT_LOW_RESERVE_ERROR'
+          } else if (errorUtil.INSERT_TX_TO_BUFFER_FAIL === sendTokenRespData.errCode) {
+            respData.errCode = errorUtil.ERRORS.INSERT_TX_TO_BUFFER_FAIL.CODE
+            respData.msg = 'errorUtil.ERRORS.INSERT_TX_TO_BUFFER_FAIL'
           } else {
             respData.errCode = errorUtil.ERRORS.SUBMIT_TX_ERROR.CODE
             respData.msg = 'errorUtil.ERRORS.SUBMIT_TX_ERROR'
@@ -122,7 +150,7 @@ export default {
           ops: operation
         }
         console.info('bumo wallet sendToken.req: ' + JSON.stringify(printSendTokenReqOpts))
-        bSdk.tx.transaction(sendTokenReqOpts).then(sendTokenRespData => {
+        bSdk.tx.transactionII(sendTokenReqOpts).then(sendTokenRespData => {
           console.log('bumo wallet sendToken.resp: ' + JSON.stringify(sendTokenRespData))
           if (errorUtil.ERRORS.SUCCESS.CODE === sendTokenRespData.errCode) {
             respData.data.hash = sendTokenRespData.data.hash
@@ -136,6 +164,9 @@ export default {
           } else if (errorUtil.BUMO_ERROR.ACCOUNT_LOW_RESERVE === sendTokenRespData.errCode) {
             respData.errCode = errorUtil.ERRORS.ACCOUNT_LOW_RESERVE_ERROR.CODE
             respData.msg = 'errorUtil.ERRORS.ACCOUNT_LOW_RESERVE_ERROR'
+          } else if (errorUtil.INSERT_TX_TO_BUFFER_FAIL === sendTokenRespData.errCode) {
+            respData.errCode = errorUtil.ERRORS.INSERT_TX_TO_BUFFER_FAIL.CODE
+            respData.msg = 'errorUtil.ERRORS.INSERT_TX_TO_BUFFER_FAIL'
           } else {
             respData.errCode = errorUtil.ERRORS.SUBMIT_TX_ERROR.CODE
             respData.msg = 'errorUtil.ERRORS.SUBMIT_TX_ERROR'
