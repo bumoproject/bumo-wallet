@@ -445,6 +445,11 @@ export default {
           'errCode': errorUtil.ERRORS.ERR_TX_NONCE_INVALID.CODE,
           'msg': errorUtil.ERRORS.ERR_TX_NONCE_INVALID.MSG
         };
+      case 160:
+          return {
+            'errCode': errorUtil.ERRORS.ERR_TX_INSERT_QUEUE_FAIL.CODE,
+            'msg': errorUtil.ERRORS.ERR_TX_INSERT_QUEUE_FAIL.MSG
+          };
       default:
         return {
           'errCode': errorUtil.ERRORS.ERR_HTTP_UNEXPECTED.CODE,

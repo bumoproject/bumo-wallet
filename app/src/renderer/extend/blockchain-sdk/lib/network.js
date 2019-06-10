@@ -301,6 +301,18 @@ export default {
         ]
       ]);
   },
+  txPayCoinII: async function(
+    addressSrc, addressDst, amount, feeLimit, gasPrice, priv, note, seqOffset, nonce) {
+    return await makeADealII(
+      'deal', addressSrc, feeLimit, gasPrice, [priv], note, seqOffset, [
+        [
+          constUtil.TX_TYPE.PAYCOIN.TYPE, {
+            'dest': addressDst,
+            'amount': amount
+          }
+        ]
+      ], nonce);
+  },
   txCreateAccount: async function(
     addressSrc, addressDst, feeLimit, gasPrice, balanceInit, priv, privDest,
     metadatas, weight, threshold, signers, contract, note, seqOffset) {
@@ -358,7 +370,11 @@ export default {
     return await makeADeal(
       type, addressSrc, feeLimit, gasPrice, [priv], note, seqOffset, ops);
   },
-
+  dealTransactionII: async function(
+    type, addressSrc, feeLimit, gasPrice, priv, note, seqOffset, ops, nonce) {
+    return await makeADealII(
+      type, addressSrc, feeLimit, gasPrice, [priv], note, seqOffset, ops, nonce);
+  },
   /**
    * 交易签名
    * @param {string} transactionString    [必须]交易字符串
@@ -1192,6 +1208,269 @@ async function makeADeal(
     }
   }
 }
+
+
+async function makeADealII(
+  type, addrSrc, feeLimit, gasPrice, privateKeys, note, seqOffset, ops, nonce) {
+  let postData = '';
+  // let nonce = 0;
+  let opsRecord = '';
+  let data;
+  data = await commonUtil.httpGetPromise('/getAccount?address=' + addrSrc);
+  let result = JSON.parse(data);
+  if (result.error_code !== 0) {
+    if (result.error_code === 4) {
+      throw (commonUtil.packageError(
+        constUtil.ERRORS.ERR_ADDR_NOT_EXISTS));
+    } else {
+      throw (commonUtil.packageHttpErr(
+        result.error_code,
+        result.error_desc));
+    }
+  }
+  // if (result.result.hasOwnProperty('nonce')) {
+  //   nonce = result.result.nonce;
+  // }
+
+  let validSeq = await commonUtil.httpGetPromise('/getModulesStatus');
+  validSeq = JSON.parse(validSeq);
+  if (validSeq &&
+    validSeq.hasOwnProperty('ledger_manager') &&
+    validSeq.ledger_manager.hasOwnProperty('chain_max_ledger_seq')) {
+    if (typeof seqOffset === 'number' && seqOffset >= 0) {
+      if (seqOffset === 0) {
+        validSeq = 0;
+      } else {
+        validSeq = validSeq.ledger_manager.chain_max_ledger_seq +
+          seqOffset;
+      }
+    } else {
+      validSeq = validSeq.ledger_manager.chain_max_ledger_seq +
+        conf.store.tx_ceil_ledger_seq;
+    }
+  } else {
+    validSeq = conf.store.tx_ceil_ledger_seq;
+  }
+
+  switch (getConf('ways_sign_tx')) {
+    case 'exe':
+      let tx = new protoChain.Transaction();
+      tx.setSourceAddress(addrSrc);
+      tx.setFeeLimit(feeLimit);
+      tx.setGasPrice(gasPrice);
+      tx.setNonce(nonce);
+      tx.setCeilLedgerSeq(validSeq);
+      if (!(
+          note === null ||
+          note === undefined ||
+          typeof note != 'string' ||
+          note.length === 0)) {
+        tx.setMetadata(Uint8Array.from(new Buffer(note, 'utf8')));
+      }
+      for (let i = 0; i < ops.length; i++) {
+        if (ops[i].length == 2) {
+          switch (ops[i][0]) {
+            case constUtil.TX_TYPE.PAYCOIN.TYPE:
+              if (ops[i][1] && ops[i][1].hasOwnProperty('dest') &&
+                ops[i][1].hasOwnProperty('amount')) {
+                tx.addOperations(
+                  asmExeOpPaycoin(
+                    ops[i][1].dest, ops[i][1].amount));
+              }
+              break;
+            case constUtil.TX_TYPE.CREATE.TYPE:
+              tx.addOperations(
+                asmExeOpCreate(
+                  ops[i][1].dest,
+                  ops[i][1].balanceInit,
+                  ops[i][1].metadatas,
+                  ops[i][1].contract));
+              break;
+            case constUtil.TX_TYPE.METADATA.TYPE:
+              tx.addOperations(
+                asmExeOpMetadata(
+                  ops[i][1].key,
+                  ops[i][1].value,
+                  ops[i][1].version));
+              break;
+            case constUtil.TX_TYPE.PAYASSET.TYPE:
+              tx.addOperations(
+                asmExeOpPayAsset(
+                  ops[i][1].dest,
+                  ops[i][1].amount,
+                  ops[i][1].issuer,
+                  ops[i][1].code));
+              break;
+            case constUtil.TX_TYPE.ISSUE.TYPE:
+              tx.addOperations(
+                asmExeOpIssue(
+                  ops[i][1].amount,
+                  ops[i][1].code));
+              break;
+            case constUtil.TX_TYPE.PRIVILEGE.TYPE:
+              tx.addOperations(
+                asmExeOpPrivilege(
+                  ops[i][1].masterWeight,
+                  ops[i][1].signers,
+                  ops[i][1].txThreshold,
+                  ops[i][1].typeThresholds,
+                  ops[i][1].srcAddress));
+              break;
+          }
+        }
+      }
+      let blob = Buffer.from(tx.serializeBinary()).toString('hex');
+      if (type === 'blob') {
+        return blob;
+      }
+      let post = {
+        'items': [{
+          'transaction_blob': blob,
+          'signatures': [],
+        }, ],
+      };
+      for (let j = 0; j < privateKeys.length; j++) {
+        let ret = await commonUtil.queryInfo(
+          'sign-data', [privateKeys[j], blob]);
+        if (ret === undefined) {
+          throw (commonUtil.packageError(constUtil.ERRORS.ERR_EXE));
+        }
+        ret = JSON.parse(ret);
+        post.items[0].signatures.push({
+          'sign_data': ret.sign_data,
+          'public_key': ret.public_key
+        })
+      }
+      opsRecord = tx.toObject();
+      postData = JSON.stringify(post);
+      break;
+
+      // default through http
+    default:
+      if (!ops) {
+        throw (commonUtil.packageError(
+          constUtil.ERRORS.ERR_TX_OP_EMPTY));
+      }
+      if (type === 'blob') {
+        throw (commonUtil.packageError(
+          constUtil.ERRORS.ERR_BLOB_INVALID));
+      }
+      let deal = {
+        'callback': [],
+        'content': {
+          'items': [{
+            'transaction_json': {
+              'source_address': addrSrc,
+              'nonce': 0,
+              'feeLimit': feeLimit,
+              'gasPrice': gasPrice,
+              'metadata': '',
+              'operations': [],
+            },
+            'private_keys': privateKeys,
+          }],
+        },
+      };
+      if (note === null ||
+        note === undefined ||
+        typeof note != 'string' ||
+        note.length === 0) {
+        delete deal.content.items[0].transaction_json.metadata;
+      } else {
+        try {
+          deal.content.items[0].transaction_json.metadata =
+            commonUtil.convertString2HexString(note);
+        } catch (err) {
+          throw (commonUtil.packageError(
+            constUtil.ERRORS.ERR_CONVERT_HEX));
+        }
+      }
+      if (type === 'fee') {
+        delete deal.content.items[0].private_keys;
+      }
+      for (let i = 0; i < ops.length; i++) {
+        if (ops[i].length == 2) {
+          switch (ops[i][0]) {
+            case constUtil.TX_TYPE.PAYCOIN.TYPE:
+              if (ops[i][1] && ops[i][1].hasOwnProperty('dest') &&
+                ops[i][1].hasOwnProperty('amount')) {
+                deal.content.items[0].transaction_json
+                  .operations.push(asmHttpOpPaycoin(
+                    ops[i][1].dest, ops[i][1].amount));
+              }
+              break;
+            case constUtil.TX_TYPE.CREATE.TYPE:
+              deal.content.items[0].transaction_json
+                .operations.push(asmHttpOpCreate(
+                  ops[i][1].dest,
+                  ops[i][1].balanceInit,
+                  ops[i][1].metadatas,
+                  ops[i][1].contract,
+                  ops[i][1].weight,
+                  ops[i][1].signers,
+                  ops[i][1].threshold
+                ));
+              break;
+          }
+        }
+      }
+      deal.content.items[0].transaction_json.nonce = nonce;
+      opsRecord = deal.content.items[0].transaction_json.operations;
+      postData = JSON.stringify(deal.content);
+      break;
+  }
+
+  result = await commonUtil.httpPostPromise(
+    (type === 'fee' ? '/testTransaction' : '/submitTransaction'),
+    postData);
+  if (type === 'fee') {
+    let t = JSONBig.parse(result);
+    if (t.error_code == 0 &&
+      t.hasOwnProperty('result') &&
+      t.result.hasOwnProperty('real_fee')) {
+      return t.result.real_fee.toString();
+    } else {
+      throw (commonUtil.packageHttpErr(
+        t.error_code,
+        t.error_code));
+    }
+  } else {
+    let t = JSON.parse(result);
+    if (t.hasOwnProperty('results') &&
+      t.results[0].error_code == 0 &&
+      t.results[0].hasOwnProperty('hash')) {
+      let params = {
+        'error_code': -1,
+        'error_desc': 'transaction submit success',
+        'hash': t.results[0].hash,
+        'ledger_seq': opsRecord.ceilLedgerSeq,
+        'actual_fee': '0',
+        'close_time': Date.now().toString() + '000',
+        'transaction': {
+          'feeLimit': feeLimit,
+          'gasPrice': gasPrice,
+          'nonce': nonce,
+          'operations': opsRecord.operationsList,
+          'source_address': addrSrc,
+        },
+      };
+      if (!(
+          note === null ||
+          note === undefined ||
+          typeof note != 'string' ||
+          note.length === 0)) {
+        params.transaction.metadata =
+          commonUtil.convertString2HexString(note);
+      };
+      commonUtil.eventTrigger(constUtil.EVENTS.TX_SUBMIT, params);
+      return t.results[0].hash;
+    } else {
+      throw (commonUtil.packageHttpErr(
+        t.results[0].error_code, t.results[0].error_desc));
+    }
+  }
+}
+
 
 /**
  * 关闭websocket连接
