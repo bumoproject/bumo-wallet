@@ -87,13 +87,13 @@ export default {
           'feeLimit': 'string',
           'gasPrice': 'string',
           'pwd': 'string',
+          'nonce': 'number'
         }, {
           'note': 'string',
           'seqOffset': 'number'
         })) {
         return (commonUtil.packageError(constUtil.ERRORS.ERR_PARAMS));
       }
-
       let amountX = commonUtil.unitConvert(
         params.amount, constUtil.BUILDIN_UNIT_IN, true);
       let feeLimitX = commonUtil.unitConvert(
@@ -108,7 +108,7 @@ export default {
         'pwd': params.pwd,
       });
       if (data.errCode == constUtil.ERRORS.SUCCESS.CODE) {
-        data = await net.txPayCoin(
+        data = await net.txPayCoinII(
           params.srcAddress,
           params.destAddress,
           amountX,
@@ -116,7 +116,7 @@ export default {
           gasPriceX,
           data.data.privKeyStr,
           params.note,
-          params.seqOffset);
+          params.seqOffset, params.nonce);
         return ({
           'errCode': constUtil.ERRORS.SUCCESS.CODE,
           'msg': constUtil.ERRORS.SUCCESS.MSG,
@@ -1091,4 +1091,284 @@ export default {
       return commonUtil.handleError(err);
     }
   },
+
+  async transactionII(params) {
+    try {
+      if (!commonUtil.objectCheck(params, {
+          'type': 'string',
+          'srcAddress': 'string',
+          'feeLimit': 'string',
+          'gasPrice': 'string',
+          'ops': 'array',
+          'nonce': 'number'
+        }, {
+          'note': 'string',
+          'seqOffset': 'number',
+          'accountNick': 'string',
+          'pwd': 'string',
+          'privateKey': 'string'
+        })) {
+        throw commonUtil.packageError(constUtil.ERRORS.ERR_PARAMS);
+      }
+      // prepare private key
+      let privateKey = '';
+      if (params.hasOwnProperty('privateKey') &&
+        params.privateKey.length > 0) {
+        privateKey = params.privateKey;
+      } else if (
+        params.hasOwnProperty('accountNick') &&
+        params.accountNick.length > 0 &&
+        params.hasOwnProperty('pwd') &&
+        params.pwd.length > 0) {
+        let result = await account.getAccountPrivKeyStr({
+          'accountNick': params.accountNick,
+          'pwd': params.pwd
+        });
+        if (commonUtil.isSuccess(result)) {
+          privateKey = result.data.privKeyStr;
+        } else {
+          throw (commonUtil.packageError(
+            constUtil.ERRORS.ERR_FILE_DECODE));
+        }
+      }
+      let p = [];
+      params.ops.forEach((element) => {
+        if (!commonUtil.objectCheck(element, {
+            'type': 'string',
+            'params': 'object'
+          })) {
+          return;
+        }
+        switch (element.type) {
+          case 'create':
+            if (commonUtil.objectCheck(element.params, {
+                'destAddress': 'string',
+                'balanceInit': 'string'
+              }, {
+                'contract': 'string',
+                'metadatas': 'object',
+                'weight': 'number',
+              })) {
+              let signers = element.params.signers;
+              if (element.params.hasOwnProperty('signers') &&
+                (typeof signers === 'object')) {
+                if (Array.isArray(signers)) {
+                  let t = {};
+                  signers.forEach((ele) => {
+                    t[ele['address']] = ele['weight'];
+                  });
+                  signers = t;
+                }
+              }
+              p.push([constUtil.TX_TYPE.CREATE.TYPE, {
+                'dest': element.params.destAddress,
+                'balanceInit': commonUtil.unitConvert(
+                  element.params.balanceInit,
+                  constUtil.BUILDIN_UNIT_IN, true),
+                'metadatas': element.params.metadatas,
+                'contract': element.params.contract,
+                'weight': element.params.weight
+              }]);
+            }
+            break;
+          case 'paycoin':
+            if (commonUtil.objectCheck(element.params, {
+                'destAddress': 'string',
+                'amount': 'string'
+              })) {
+              p.push([constUtil.TX_TYPE.PAYCOIN.TYPE, {
+                'dest': element.params.destAddress,
+                'amount': commonUtil.unitConvert(
+                  element.params.amount,
+                  constUtil.BUILDIN_UNIT_IN, true),
+              }]);
+            }
+            break;
+          case 'payasset':
+            if (commonUtil.objectCheck(element.params, {
+                'destAddress': 'string',
+                'amount': 'string',
+                'issuer': 'string',
+                'code': 'string',
+                // decimals: 'number'
+              })) {
+              const decimals = (element.params.decimals && typeof element.params.decimals === 'number')
+                ? element.params.decimals
+                : 0;
+              p.push([constUtil.TX_TYPE.PAYASSET.TYPE, {
+                'dest': element.params.destAddress,
+                // 'amount': commonUtil.unitConvert(
+                //   element.params.amount,
+                //   0, true),
+                amount: new BigNumber(element.params.amount).times(Math.pow(10, decimals)).toString(10),
+                'issuer': element.params.issuer,
+                'code': element.params.code,
+              }]);
+            }
+            break;
+          case 'issue':
+            if (commonUtil.objectCheck(element.params, {
+                'code': 'string',
+                'amount': 'string'
+              })) {
+              p.push([constUtil.TX_TYPE.ISSUE.TYPE, {
+                'code': element.params.code,
+                'amount': commonUtil.unitConvert(
+                  element.params.amount,
+                  0, true),
+              }]);
+            }
+            break;
+          case 'metadata':
+            if (commonUtil.objectCheck(element.params, {
+                'key': 'string'
+              }, {
+                'value': 'string',
+                'version': 'number'
+              })) {
+              let t = {
+                'key': element.params.key
+              }
+              if (element.params.hasOwnProperty('value')) {
+                t['value'] = element.params.value;
+              }
+              if (element.params.hasOwnProperty('version')) {
+                t['version'] = element.params.version;
+              }
+              p.push([constUtil.TX_TYPE.METADATA.TYPE, t]);
+            }
+            break;
+          case 'privilege':
+            if (commonUtil.objectCheck(element.params, {}, {
+                'masterWeight': 'string',
+                'signers': 'array',
+                'txThreshold': 'string',
+                'typeThresholds': 'array',
+                'srcAddress': 'string'
+              })) {
+              let t = {};
+              if (element.params.hasOwnProperty('masterWeight')) {
+                t.masterWeight = element.params.masterWeight;
+              }
+              if (element.params.hasOwnProperty('txThreshold')) {
+                t.txThreshold = element.params.txThreshold;
+              }
+              if (element.params.hasOwnProperty('srcAddress')) {
+                t.srcAddress = element.params.srcAddress;
+              }
+              if (element.params.hasOwnProperty('signers') &&
+                element.params.signers.length > 0) {
+                t.signers = [];
+                for (let i = 0; i < element.params.signers.length; i++) {
+                  if (commonUtil.objectCheck(element.params.signers[i], {
+                      'address': 'string',
+                      'weight': 'number'
+                    })) {
+                    t.signers.push({
+                      'address': element.params.signers[i].address,
+                      'weight': element.params.signers[i].weight
+                    });
+                  }
+                }
+              }
+              if (element.params.hasOwnProperty('typeThresholds') &&
+                element.params.typeThresholds.length > 0) {
+                t.typeThresholds = [];
+                for (let i = 0; i < element.params.typeThresholds.length; i++) {
+                  if (commonUtil.objectCheck(element.params.typeThresholds[i], {
+                      'type': 'number',
+                      'threshold': 'number'
+                    })) {
+                    t.typeThresholds.push({
+                      'type': element.params.typeThresholds[i].type,
+                      'threshold': element.params.typeThresholds[i].threshold
+                    });
+                  }
+                }
+              }
+              if (t !== null) {
+                p.push([constUtil.TX_TYPE.PRIVILEGE.TYPE, t]);
+              }
+            }
+            break;
+          default:
+            return;
+        }
+      });
+      if (p.length === 0) {
+        throw (commonUtil.packageError(constUtil.ERRORS.ERR_TX_NO_OPS));
+      }
+      let result = await net.dealTransactionII(
+        params.type,
+        params.srcAddress,
+        commonUtil.unitConvert(
+          params.feeLimit, constUtil.BUILDIN_UNIT_IN, true),
+        commonUtil.unitConvert(
+          params.gasPrice, 0, true),
+        privateKey,
+        params.note,
+        params.seqOffset,
+        p, params.nonce);
+      
+      switch (params.type) {
+        case 'fee':
+          return ({
+            'errCode': constUtil.ERRORS.SUCCESS.CODE,
+            'msg': constUtil.ERRORS.SUCCESS.MSG,
+            'data': {
+              'fee': commonUtil.unitConvert(
+                result, constUtil.BUILDIN_UNIT_OUT)
+            }
+          });
+          break;
+        case 'blob':
+          return ({
+            'errCode': constUtil.ERRORS.SUCCESS.CODE,
+            'msg': constUtil.ERRORS.SUCCESS.MSG,
+            'data': {
+              'blob': result,
+              'transactionString': net.getTransactionString(result)
+            }
+          });
+          break;
+        case 'deal':
+          return ({
+            'errCode': constUtil.ERRORS.SUCCESS.CODE,
+            'msg': constUtil.ERRORS.SUCCESS.MSG,
+            'data': {
+              'hash': result
+            }
+          });
+          break;
+        default:
+          return result;
+      }
+    } catch (err) {
+      return commonUtil.handleError(err);
+    }
+  },
+  async getNonce (args) {
+    let nonce = 0;
+    const data = await commonUtil.httpGetPromise('/getAccount?address=' + args.address);
+    let result = JSON.parse(data);
+    if (result.error_code !== 0) {
+      if (result.error_code === 4) {
+        throw (commonUtil.packageError(
+          constUtil.ERRORS.ERR_ADDR_NOT_EXISTS));
+      } else {
+        throw (commonUtil.packageHttpErr(
+          result.error_code,
+          result.error_desc));
+      }
+    }
+    if (result.result.hasOwnProperty('nonce')) {
+      nonce = result.result.nonce;
+    }
+    return  {
+      errCode: 0,
+      data: {
+      nonce: (nonce + 1)
+      }
+      }
+  }
 };
