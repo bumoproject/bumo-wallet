@@ -50,7 +50,8 @@ export default {
           note: opts.note,
           feeLimit: opts.fee,
           gasPrice: gasPrice,
-          pwd: opts.accountPwd
+          pwd: opts.accountPwd,
+          nonce: opts.nonce
         }
         var printSendTokenReqOpts = {
           accountNick: opts.walletNick,
@@ -59,7 +60,8 @@ export default {
           amount: opts.sentAssetAmount,
           note: opts.note,
           feeLimit: opts.fee,
-          gasPrice: gasPrice
+          gasPrice: gasPrice,
+          nonce: opts.nonce
         }
         console.info('bumo wallet sendToken.req: ' + JSON.stringify(printSendTokenReqOpts))
         bSdk.tx.sendToken(sendTokenReqOpts).then(sendTokenRespData => {
@@ -138,7 +140,8 @@ export default {
           feeLimit: fee,
           gasPrice: gasPrice,
           pwd: opts.accountPwd,
-          ops: operation
+          ops: operation,
+          nonce: opts.nonce
         }
         var printSendTokenReqOpts = {
           type: 'deal',
@@ -147,7 +150,8 @@ export default {
           note: opts.note,
           feeLimit: fee,
           gasPrice: gasPrice,
-          ops: operation
+          ops: operation,
+          nonce: opts.nonce
         }
         console.info('bumo wallet sendToken.req: ' + JSON.stringify(printSendTokenReqOpts))
         bSdk.tx.transactionII(sendTokenReqOpts).then(sendTokenRespData => {
