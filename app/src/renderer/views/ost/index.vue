@@ -108,6 +108,7 @@
       },
       handleSubmitTxClear () {
         this.unsubmittedBlob = ''
+        this.isSubmit = false
       }
     }
   }

@@ -162,6 +162,9 @@
       },
       handleSubmitTx () {
         if (this.submitBtnText) {
+          if (!this.submitBtnActive) {
+            return
+          }
           if (!navigator.onLine) {
             this.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
             return
@@ -191,6 +194,7 @@
           this.noData = true
           this.txBlob = ''
           this.submitBtnText = true
+          this.submitBtnActive = false
           this.$emit('clearSubmitTx')
         }
       }

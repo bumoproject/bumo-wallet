@@ -357,18 +357,27 @@
         var reqData = {
           walletAddress: that.sendAssetData.srcAddr
         }
-        accountService.getAccountTokenBalance(reqData).then(respData => {
-          if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
-            that.$Message.error(that.$t('errorUtil.ERRORS.NETWORK_ERROR'))
+        accountService.getAccountInfo(that.sendAssetData.srcAddr.trim()).then(resData => {
+          if (errorUtil.ERRORS.SUCCESS.CODE === resData.errCode) {
+            // If the account is correct, check the balance.
+            accountService.getAccountTokenBalance(reqData).then(respData => {
+              if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
+                that.$Message.error(that.$t('errorUtil.ERRORS.NETWORK_ERROR'))
+                return
+              }
+              if ((respData.data.tokenBalance - 0) > (config.reserveAccountBalance - 0)) {
+                that.availableAssetAmount = utils.commafy(utils.bigNumMinus(respData.data.tokenBalance, config.reserveAccountBalance))
+              } else {
+                that.availableAssetAmount = 0
+              }
+            }).catch(data => {
+              console.log('err data:', data)
+            })
+          } else {
             return
           }
-          if ((respData.data.tokenBalance - 0) > (config.reserveAccountBalance - 0)) {
-            that.availableAssetAmount = utils.commafy(utils.bigNumMinus(respData.data.tokenBalance, config.reserveAccountBalance))
-          } else {
-            that.availableAssetAmount = 0
-          }
-        }).catch(data => {
-          console.log('err data:', data)
+        }).catch(e => {
+          return
         })
       }
     }

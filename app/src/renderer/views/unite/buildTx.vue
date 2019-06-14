@@ -394,10 +394,17 @@ export default {
     }
   },
   methods: {
+    /**
+     * Not written in validate
+     * When submitted, validate will be executed, which will modify the transaction fee again.
+     */
     getAvailableBalanceAndTokenList () {
       var that = this
       if (!that.sendAssetData.srcAddr) {
         return
+      }
+      var reqData = {
+        address: that.sendAssetData.srcAddr
       }
       that.tokenList = []
       accountService.getAccountInfo(that.sendAssetData.srcAddr).then(resData => {
@@ -424,41 +431,37 @@ export default {
             }
           } catch (e) {
             console.log(e)
-            // this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
             that.tokenList = []
             return
           }
+          // If the account is correct, check the balance.
+          accountService.getAvailableBalanceAndTokenList(reqData).then((respData) => {
+            if (errorUtil.ERRORS.SUCCESS.CODE === respData.errCode) {
+              respData.data.tokens.unshift({
+                code: 'BU',
+                issuer: '',
+                amount: respData.data.balance,
+                decimals: 8
+              })
+              respData.data.tokens.forEach(function (item) {})
+              that.tokenList = respData.data.tokens
+            } else {
+              that.tokenList = []
+              this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
+            }
+          }).catch(e => {
+            that.tokenList = []
+            this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
+          })
         } else {
           that.tokenList = []
-          this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
           return
         }
       }).catch(e => {
         that.tokenList = []
-        this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
         return
       })
-      var reqData = {
-        address: that.sendAssetData.srcAddr
-      }
-      accountService.getAvailableBalanceAndTokenList(reqData).then((respData) => {
-        if (errorUtil.ERRORS.SUCCESS.CODE === respData.errCode) {
-          respData.data.tokens.unshift({
-            code: 'BU',
-            issuer: '',
-            amount: respData.data.balance,
-            decimals: 8
-          })
-          respData.data.tokens.forEach(function (item) {})
-          that.tokenList = respData.data.tokens
-        } else {
-          that.tokenList = []
-          // this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
-        }
-      }).catch(e => {
-        that.tokenList = []
-        this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
-      })
+      
     },
     getAvailableAssetAmount () {
       var that = this
