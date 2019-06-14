@@ -22,7 +22,7 @@ const testConnections = {
 }
 
 export default {
-  name: process.env.NETWORK_TYPE === 'Lite' ? pkg.productName + '-Lite' : pkg.productName + '-Full',
+  name: process.env.NETWORK_TYPE === 'Lite' ? pkg.productName + '-Lite' : (process.env.NETWORK_TYPE === 'test' ? pkg.productName + 'Test-Full' : pkg.productName + '-Full'),
   version: pkg.version,
   defaultMaxTxFee: 10,
   reserveAccountBalance: 0.01,
