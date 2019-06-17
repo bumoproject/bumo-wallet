@@ -88,6 +88,7 @@
 
 <script>
   import txService from '../../controllers/txService'
+  import baseService from '../../controllers/baseService'
   import utils from '../../utils/tools.js'
   import accountService from '../../controllers/accountService'
   import errorUtil from '../../constants'
@@ -295,10 +296,6 @@
           this.$Message.error(this.$t('errorUtil.ERRORS.NOT_NORMAL_ACCOUNT'))
           return
         }
-        if (!navigator.onLine) {
-          this.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
-          return
-        }
         if (this.blobBuildIng) {
           return
         }
@@ -306,32 +303,38 @@
         this.$refs.sendAssetData.validate((valid) => {
           if (valid) {
             that.showBuildTxDialog = true
-            var reqData = {
-              currentTokenType: 'BU',
-              srcAddr: that.sendAssetData.srcAddr,
-              destAddr: that.sendAssetData.destAddr,
-              sentAssetAmount: that.sendAssetData.txAmount,
-              note: that.sendAssetData.remarks,
-              fee: that.sendAssetData.fee,
-              seqOffset: -1
-            }
             that.blobBuildIng = true
-            txService.buildTxBlob(reqData).then(respData => {
+            baseService.testNetworkOnline().then(res => {
+              console.log('----------------------- Network OK! --------------------')
               that.blobBuildIng = false
-              if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
-                that.$Message.error({
-                  content: that.$t(respData.msg),
-                  duration: 3
-                })
-                return
-              } else {
-                that.sendAssetData.buildTxBlobStr = respData.data.blob
-                that.$Message.success(that.$t('msg.succ.buildSucc'))
-                that.$emit('buildTxSucc', that.sendAssetData)
+              var reqData = {
+                currentTokenType: 'BU',
+                srcAddr: that.sendAssetData.srcAddr,
+                destAddr: that.sendAssetData.destAddr,
+                sentAssetAmount: that.sendAssetData.txAmount,
+                note: that.sendAssetData.remarks,
+                fee: that.sendAssetData.fee,
+                seqOffset: -1
               }
-            }).catch(data => {
+              txService.buildTxBlob(reqData).then(respData => {
+                if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
+                  that.$Message.error({
+                    content: that.$t(respData.msg),
+                    duration: 3
+                  })
+                  return
+                } else {
+                  that.sendAssetData.buildTxBlobStr = respData.data.blob
+                  that.$Message.success(that.$t('msg.succ.buildSucc'))
+                  that.$emit('buildTxSucc', that.sendAssetData)
+                }
+              }).catch(data => {
+                console.log('err data:', data)
+              })
+            }).catch(error => {
               that.blobBuildIng = false
-              console.log('err data:', data)
+              console.log('----------------------- Network ERROR! --------------------')
+              that.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
             })
           } else {
             that.$Message.error(this.$t('msg.srror.formErr'))
