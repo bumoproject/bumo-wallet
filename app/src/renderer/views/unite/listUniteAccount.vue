@@ -657,10 +657,6 @@ export default {
     },
     showPlayPwdDialog () { // 创建--验证表单
       var that = this
-      // if (!navigator.onLine) {
-      //   this.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
-      //   return
-      // }
       that.$refs['createUniteAccountData'].validate((valid) => {
         var memberListDom
         for (var n = 0; n < that.$refs['createUniteAccountData'].$children.length; n++) { // 找出共管成员子组件

@@ -53,13 +53,13 @@
             <div class="table-body-box">
               <dl class="table-body clearfix" v-for="(item, index) in txs" :key="index" @click="showTxDetailDialog(item)">
                 <dd class="status tx-status-success index-content-tx-list">
-                  <p class="tx-status" v-if="item.status.code === 0">
+                  <p class="tx-status" v-if="item.status.code === 0" @click.stop="handleCatchBubble">
                     <Tooltip :popper-class="'tx-status-tooltip'" :content="item.errMsg" :placement="index === 0 ? 'bottom-start' : 'top-start'"><i class="iconfont icon-chenggong1"></i></Tooltip>
                   </p>
-                  <p class="tx-status" v-else-if="item.status.code === -1">
+                  <p class="tx-status" v-else-if="item.status.code === -1" @click.stop="handleCatchBubble">
                     <Tooltip :popper-class="'tx-status-tooltip'" :content="item.errMsg" :placement="index === 0 ? 'bottom-start' : 'top-start'"><i class="iconfont icon-jinhangzhong"></i></Tooltip>
                   </p>
-                  <p class="tx-status" v-else>
+                  <p class="tx-status" v-else @click.stop="handleCatchBubble">
                     <Tooltip :popper-class="'tx-status-tooltip'" :content="item.errMsg" :placement="index === 0 ? 'bottom-start' : 'top-start'"><i class="iconfont icon-shibai1"></i></Tooltip>
                   </p>
                 </dd>
@@ -178,6 +178,7 @@ export default {
     }
   },
   methods: {
+    handleCatchBubble () {},
     goSend () {
       var that = this
       this.$store.commit('ACTIVE_HEADER_NAV', 'tx')
