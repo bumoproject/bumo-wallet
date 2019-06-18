@@ -547,6 +547,9 @@ export default {
         } else if (errorUtil.BUMO_ERROR.NOT_ENOUGH_TX_FEE === sdkRespData.errCode) {
           respData.errCode = errorUtil.ERRORS.NOT_ENOUGH_TX_FEE_ERROR.CODE
           respData.msg = 'errorUtil.ERRORS.NOT_ENOUGH_TX_FEE_ERROR'
+        } else if (errorUtil.INSERT_TX_TO_BUFFER_FAIL === sdkRespData.errCode) {
+          respData.errCode = errorUtil.ERRORS.INSERT_TX_TO_BUFFER_FAIL.CODE
+          respData.msg = 'errorUtil.ERRORS.INSERT_TX_TO_BUFFER_FAIL'
         } else {
           respData.errCode = errorUtil.ERRORS.FAIL.CODE
           respData.msg = 'errorUtil.ERRORS.FAIL'
