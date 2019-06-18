@@ -123,7 +123,8 @@ export default {
     INVALID_TX_BLOB_STR: 20,
     INVALID_TX_NONCE: 25,
     TX_TIMEOUT: 23
-  }
+  },
+  INSERT_TX_TO_BUFFER_FAIL: 113
 }
 // export default {
 //   ERRORS: {
