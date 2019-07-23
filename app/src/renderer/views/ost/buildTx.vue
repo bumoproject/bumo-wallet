@@ -337,7 +337,7 @@
               that.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
             })
           } else {
-            that.$Message.error(this.$t('msg.srror.formErr'))
+            that.$Message.error(this.$t('msg.error.formErr'))
           }
         })
       },
