@@ -205,7 +205,7 @@
         </div>
         <div slot="footer">
           <button @click="cancelFrm()" type="button" class="ivu-btn ivu-btn-text ivu-btn-large"><span>{{$t('common.dialogButton.cancel')}}</span></button>
-          <button v-if="playPwdData.accountPwd !== ''" @click="submitFrm()" type="button" class="ivu-btn ivu-btn-primary ivu-btn-large"><span>{{$t('common.dialogButton.confirm')}}</span></button>
+          <button v-if="playPwdData.accountPwd !== ''" @click="submitFrm()" type="button" class="ivu-btn ivu-btn-primary ivu-btn-large" :loading="submitLoading"><span>{{$t('common.dialogButton.confirm')}}</span></button>
           <button v-else type="button" class="ivu-btn ivu-btn-primary ivu-btn-large btn-disabled"><span>{{$t('common.dialogButton.confirm')}}</span></button>
         </div>
       </Modal>
@@ -240,6 +240,7 @@
 </template>
 <script>
 import accountService from '../../controllers/accountService'
+import baseService from '../../controllers/baseService'
 import errorUtil from '../../constants'
 import config from '../../../config'
 import tools from '../../utils/tools'
@@ -249,6 +250,7 @@ export default {
   },
   data () {
     return {
+      submitLoading: false,
       checkAccountModal: {// 查询联名账户弹窗相关
         show: false,
         checkAddr: '',
@@ -655,10 +657,6 @@ export default {
     },
     showPlayPwdDialog () { // 创建--验证表单
       var that = this
-      if (!navigator.onLine) {
-        this.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
-        return
-      }
       that.$refs['createUniteAccountData'].validate((valid) => {
         var memberListDom
         for (var n = 0; n < that.$refs['createUniteAccountData'].$children.length; n++) { // 找出共管成员子组件
@@ -762,35 +760,46 @@ export default {
       that.$refs['playPwdData'].validate((valid) => {
         that.createUniteAccountData.walletAccountPwd = that.playPwdData.accountPwd
         var reqParams = that.createUniteAccountData
-        console.log(JSON.stringify(reqParams))
+        // console.log(JSON.stringify(reqParams)) Prohibit printing passwords
         if (valid) {
-          accountService.createUnitAccount(reqParams).then(respData => {
-            if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
-              that.$Message.error({
-                content: that.$t(respData.msg),
-                duration: 3
-              })
-              setTimeout(function () {
-                that.playPwdLoading = false
-                that.$nextTick(() => {
-                  that.playPwdLoading = true
+          if (that.submitLoading) return
+          that.submitLoading = true
+          baseService.testNetworkOnline().then(res => {
+            console.log('----------------------- Network OK! --------------------')
+            that.submitLoading = false
+            accountService.createUnitAccount(reqParams).then(respData => {
+              if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
+                that.$Message.error({
+                  content: that.$t(respData.msg),
+                  duration: 3
                 })
-              }, 10)
-            } else {
-              that.createdUniteAccountDialog = false
-              that.$emit('setSucPage', {show: true, addr: respData.data.address})
-              that.playPwdDialog = false
-              that.$refs.playPwdData.resetFields()
-              setTimeout(function () {
-                that.playPwdLoading = false
-                that.$nextTick(() => {
-                  that.playPwdLoading = true
-                })
-              }, 10)
-            }
-          }).catch(data => {
-            console.log('err data:', data)
+                setTimeout(function () {
+                  that.playPwdLoading = false
+                  that.$nextTick(() => {
+                    that.playPwdLoading = true
+                  })
+                }, 10)
+              } else {
+                that.createdUniteAccountDialog = false
+                that.$emit('setSucPage', {show: true, addr: respData.data.address})
+                that.playPwdDialog = false
+                that.$refs.playPwdData.resetFields()
+                setTimeout(function () {
+                  that.playPwdLoading = false
+                  that.$nextTick(() => {
+                    that.playPwdLoading = true
+                  })
+                }, 10)
+              }
+            }).catch(data => {
+              console.log('err data:', data)
+            })
+          }).catch(error => {
+            console.log('----------------------- Network ERROR! --------------------')
+            that.submitLoading = false
+            that.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
           })
+          
         } else {
           setTimeout(function () {
             that.playPwdLoading = false

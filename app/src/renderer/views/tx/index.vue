@@ -28,7 +28,7 @@
               <Input v-model.trim="sendAssetData.note" :placeholder="$t('send.form.note.placeholder')" type="textarea" ></Input>
             </FormItem>
             <FormItem class="btn-main-inactive btn-main-active"  v-show="isSubmitBtnActive">
-              <Button @click="handleSubmit('sendAssetData')" 
+              <Button @click="handleGetNonce('sendAssetData')" 
                       type="primary" class="btn-main" long>
                       {{$t('send.form.nextBtn')}}
               </Button>
@@ -73,7 +73,7 @@
             </div>
             <div slot="footer">
               <Button class="btn-cattle"  @click="cancelFrm">{{$t('common.dialogButton.cancelSend')}}</Button>
-              <Button v-show="sendAssetData.accountPwd !== ''" class="pwd-btn-main"  @click="sendAssetSubmit('playPwdData')">{{$t('common.dialogButton.confirmSend')}}</Button>
+              <Button v-show="sendAssetData.accountPwd !== ''" class="pwd-btn-main"  @click="sendAssetSubmit('playPwdData')" :loading="confirmSendLoading">{{$t('common.dialogButton.confirmSend')}}</Button>
               <Button v-show="sendAssetData.accountPwd === ''" class="pwd-btn-main-inactive"  >{{$t('common.dialogButton.confirmSend')}}</Button>
             </div>
         </Modal>
@@ -88,6 +88,7 @@ import txService from '../../controllers/txService'
 import errorUtil from '../../constants'
 import config from '../../../config'
 import tools from '../../utils/tools'
+import baseService from '../../controllers/baseService'
 export default {
   // components: {
   //   txListComponet
@@ -142,8 +143,10 @@ export default {
   data () {
     return {
       tokenList: [],
+      nonce: '',
       flag: false,
       submited: false,
+      confirmSendLoading: false,
       accountUnactive: 0,
       destAddrValidate: '',
       sendAssetData: {
@@ -176,6 +179,7 @@ export default {
           { required: true, message: this.$t('error.inputDestAddr'), trigger: 'blur' },
           {
             validator: (rule, value, callback) => {
+              var that = this
               if (value === null) {
                 callback()
               }
@@ -208,6 +212,7 @@ export default {
                   callback()
                 }
               }).catch(data => {
+                that.$Message.error(that.$t('errorUtil.ERRORS.NET_OFFLINE'))
                 console.log('err data:', data)
               })
             },
@@ -372,11 +377,43 @@ export default {
     txPanelClick (e) {
       this.txPanel = e
     },
-    handleSubmit (name) {
-      this.submited = true
-      this.$refs[name].validate((valid) => {
+    // get nonce
+    handleGetNonce (name) {
+      var that = this
+      that.submited = true
+      var assetCode = 'BU', issuerAddr, decimals
+      if (that.sendAssetData.currentTokenType !== 'BU') {
+        assetCode = that.sendAssetData.currentTokenType.split('-')[0]
+        issuerAddr = that.sendAssetData.currentTokenType.split('-')[1]
+        decimals = that.sendAssetData.currentTokenType.split('-')[2] - 0
+      }
+      that.submited = true
+      that.$refs[name].validate((valid) => {
         if (valid) {
-          this.sendAssetConfirm = true
+          baseService.testNetworkOnline().then(res => {
+            console.log('----------------------- Network OK! --------------------')
+            let address = that.$store.state.recentLoginWalletAccount.address
+            txService.getNonce({
+              address
+            }).then(respData => {
+              console.log(respData)
+              if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
+                that.$Message.error({
+                  content: that.$t(respData.msg),
+                  duration: 3
+                })
+                return
+              } else {
+                that.nonce= respData.data.nonce
+                this.sendAssetConfirm = true
+              }
+            }).catch(data => {
+              console.log('err data:', data)
+            })
+          }).catch(err => {
+            this.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
+            console.log('----------------------- Network ERROR! --------------------')
+          })
         }
       })
     },
@@ -394,73 +431,84 @@ export default {
       }
       this.$refs[name].validate((valid) => {
         if (valid) {
-          var sendTokenReqOpts = {
-            walletNick: that.$store.state.recentLoginWalletAccount.nick,
-            walletAddress: that.$store.state.recentLoginWalletAccount.address,
-            destAddr: that.sendAssetData.destAddr,
-            sentAssetAmount: that.sendAssetData.sentAssetAmount,
-            note: that.sendAssetData.note,
-            fee: that.sendAssetData.fee,
-            accountPwd: that.sendAssetData.accountPwd,
-            issuer: issuerAddr,
-            code: assetCode,
-            accountUnactive: that.accountUnactive,
-            decimals
-          }
-          if (that.sendAssetData.currentTokenType === 'BU') {
-            txService.sendToken(sendTokenReqOpts).then(respData => {
-              if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
-                that.$Message.error({
-                  content: that.$t(respData.msg),
-                  duration: 3
-                })
-                setTimeout(function () {
-                  that.playPwdLoading = false
-                  that.$nextTick(() => {
-                    that.playPwdLoading = true
+          if (that.confirmSendLoading) return
+          that.confirmSendLoading = true
+          baseService.testNetworkOnline().then(res => {
+            that.confirmSendLoading = false
+            console.log('----------------------- Network OK! --------------------')
+            var sendTokenReqOpts = {
+              walletNick: that.$store.state.recentLoginWalletAccount.nick,
+              walletAddress: that.$store.state.recentLoginWalletAccount.address,
+              destAddr: that.sendAssetData.destAddr,
+              sentAssetAmount: that.sendAssetData.sentAssetAmount,
+              note: that.sendAssetData.note,
+              fee: that.sendAssetData.fee,
+              accountPwd: that.sendAssetData.accountPwd,
+              issuer: issuerAddr,
+              code: assetCode,
+              accountUnactive: that.accountUnactive,
+              decimals,
+              nonce: that.nonce
+            }
+            if (that.sendAssetData.currentTokenType === 'BU') {
+              txService.sendToken(sendTokenReqOpts).then(respData => {
+                if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
+                  that.$Message.error({
+                    content: that.$t(respData.msg),
+                    duration: 3
                   })
-                }, 10)
-              } else {
-                that.sendAssetConfirm = false
-                that.$Message.success(this.$t('msg.succ.acceptTx'))
-                that.restFrm()
-                that.$router.push({
-                  name: 'walletContent'
-                })
-                that.$store.commit('ACTIVE_HEADER_NAV', 'index')
-              }
-            }).catch(data => {
-              console.log('err data:', data)
-            })
-          } else {
-            txService.sendAsset(sendTokenReqOpts).then(respData => {
-              if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
-                that.$Message.error({
-                  content: that.$t(respData.msg),
-                  duration: 3
-                })
-                setTimeout(function () {
-                  that.playPwdLoading = false
-                  that.$nextTick(() => {
-                    that.playPwdLoading = true
+                  setTimeout(function () {
+                    that.playPwdLoading = false
+                    that.$nextTick(() => {
+                      that.playPwdLoading = true
+                    })
+                  }, 10)
+                } else {
+                  that.sendAssetConfirm = false
+                  that.$Message.success(this.$t('msg.succ.acceptTx'))
+                  that.restFrm()
+                  that.$router.push({
+                    name: 'walletContent'
                   })
-                }, 10)
-              } else {
-                that.sendAssetConfirm = false
-                that.$Message.success(this.$t('msg.succ.acceptTx'))
-                that.$router.push({
-                  name: 'Token',
-                  query: {
-                    tokenType: that.sendAssetData.currentTokenType
-                  }
-                })
-                that.restFrm()
-                that.$store.commit('ACTIVE_HEADER_NAV', 'token')
-              }
-            }).catch(data => {
-              console.log('err data:', data)
-            })
-          }
+                  that.$store.commit('ACTIVE_HEADER_NAV', 'index')
+                }
+              }).catch(data => {
+                console.log('err data:', data)
+              })
+            } else {
+              txService.sendAsset(sendTokenReqOpts).then(respData => {
+                if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
+                  that.$Message.error({
+                    content: that.$t(respData.msg),
+                    duration: 3
+                  })
+                  setTimeout(function () {
+                    that.playPwdLoading = false
+                    that.$nextTick(() => {
+                      that.playPwdLoading = true
+                    })
+                  }, 10)
+                } else {
+                  that.sendAssetConfirm = false
+                  that.$Message.success(this.$t('msg.succ.acceptTx'))
+                  that.$router.push({
+                    name: 'Token',
+                    query: {
+                      tokenType: that.sendAssetData.currentTokenType
+                    }
+                  })
+                  that.restFrm()
+                  that.$store.commit('ACTIVE_HEADER_NAV', 'token')
+                }
+              }).catch(data => {
+                console.log('err data:', data)
+              })
+            }
+          }).catch(err => {
+            that.confirmSendLoading = false
+            this.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
+            console.log('----------------------- Network ERROR! --------------------')
+          })
         } else {
           setTimeout(function () {
             that.playPwdLoading = false
@@ -478,7 +526,7 @@ export default {
       }
       accountService.getAccountTokenBalance(reqData).then(respData => {
         if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
-          that.$Message.error(that.$t(respData.msg))
+          // that.$Message.error(that.$t(respData.msg))
           return
         }
         if ((respData.data.tokenBalance - 0) > (config.reserveAccountBalance - 0)) {

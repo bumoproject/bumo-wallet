@@ -124,6 +124,7 @@ export default {
     },
     handleSubmitTxClear () {
       this.unsubmittedBlob = ''
+      this.isSubmit = false
     },
     handleTxSucc () {
       this.isSubmit = true

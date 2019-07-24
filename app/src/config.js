@@ -1,8 +1,28 @@
 import tools from './renderer/utils/tools'
 import path from 'path'
 import pkg from '../../package.json'
+
+const fullConnections = {
+  'http_host': '127.0.0.1',
+  'http_port': '16002',
+  'ws_host': '127.0.0.1',
+  'ws_port': '16003'
+}
+const liteConnections = {
+  'http_host': '52.80.12.8',
+  'http_port': '6002',
+  'ws_host': '52.80.12.8',
+  'ws_port': '6003'
+}
+const testConnections = {
+  'http_host': '127.0.0.1',
+  'http_port': '26002',
+  'ws_host': '127.0.0.1',
+  'ws_port': '26003'
+}
+
 export default {
-  name: pkg.productName,
+  name: process.env.NETWORK_TYPE === 'Lite' ? pkg.productName + '-Lite' : (process.env.NETWORK_TYPE === 'test' ? pkg.productName + 'Test-Full' : pkg.productName + '-Full'),
   version: pkg.version,
   defaultMaxTxFee: 10,
   reserveAccountBalance: 0.01,
@@ -13,15 +33,16 @@ export default {
     port: 80,
     browser: {
       // domain: 'https://explorer.bumotest.io/',
-      domain: 'https://explorer.bumot.io/',
+      domain: process.env.NETWORK_TYPE === 'test' ? 'https://explorer.bumotest.io/' : 'https://explorer.bumot.io/',
       port: 80
     },
     wallet: {
       // serverHost: 'wallet-s.bumodev.io',
-      serverHost: 'wallet-s.bumo.io',
+      serverHost: process.env.NETWORK_TYPE === 'test' ? 'wallet-s.bumodev.io' : 'wallet-s.bumo.io',
       port: 80
     }
   },
+  connections: process.env.NETWORK_TYPE === 'Lite' ? liteConnections : (process.env.NETWORK_TYPE === 'test' ? testConnections : fullConnections),
   sdk: {
     syncNodeExePath: function () {
       let nodeExePath = null

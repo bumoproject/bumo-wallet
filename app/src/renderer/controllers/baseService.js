@@ -156,6 +156,27 @@ export default {
       gasPrice = fee / byteLength
     })
     return tools.fmtGasPrice(gasPrice).toString()
+  },
+  // Judge network connectivity through ajax
+  testNetworkOnline () {
+    return new Promise((resolve, reject) => {
+      var options = {
+        hostname: cfg.api.wallet.serverHost,
+        port: cfg.api.wallet.port,
+        path: '/sys/version',
+        method: 'GET'
+      }
+      var req = http.request(options, function (res) {
+        res.setEncoding('utf8')
+        res.on('data', function (chunk) {
+          resolve()
+        })
+      })
+      req.on('error', function (e) {
+        reject()
+        console.log('problem with request: ' + e.message)
+      })
+      req.end()
+    })
   }
-
 }

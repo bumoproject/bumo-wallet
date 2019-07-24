@@ -40,7 +40,8 @@ let mainConfig = {
   plugins: [
     new webpack.NoEmitOnErrorsPlugin(),
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': '"production"'
+      'process.env.NODE_ENV': '"production"',
+      'process.env.NETWORK_TYPE': (process.env.NETWORK_TYPE === 'Lite' || process.env.NETWORK_TYPE === 'test') ? JSON.stringify(process.env.NETWORK_TYPE) : '"Full"'
     }),
     new webpack.optimize.UglifyJsPlugin({
       compress: {

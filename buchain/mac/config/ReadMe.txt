@@ -1,5 +1,6 @@
-
 //Configuration file version description.
+
+The execution of the program must depend on the configuration file
 
 //mainnet config
 bumo-mainnet.json 			

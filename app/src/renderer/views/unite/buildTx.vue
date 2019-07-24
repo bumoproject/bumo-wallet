@@ -95,6 +95,7 @@
 <script>
 import txService from '../../controllers/txService'
 import accountService from '../../controllers/accountService'
+import baseService from '../../controllers/baseService'
 import utils from '../../utils/tools'
 import errorUtil from '../../constants'
 import config from '../../../config'
@@ -394,10 +395,17 @@ export default {
     }
   },
   methods: {
+    /**
+     * Not written in validate
+     * When submitted, validate will be executed, which will modify the transaction fee again.
+     */
     getAvailableBalanceAndTokenList () {
       var that = this
       if (!that.sendAssetData.srcAddr) {
         return
+      }
+      var reqData = {
+        address: that.sendAssetData.srcAddr
       }
       that.tokenList = []
       accountService.getAccountInfo(that.sendAssetData.srcAddr).then(resData => {
@@ -424,41 +432,37 @@ export default {
             }
           } catch (e) {
             console.log(e)
-            // this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
             that.tokenList = []
             return
           }
+          // If the account is correct, check the balance.
+          accountService.getAvailableBalanceAndTokenList(reqData).then((respData) => {
+            if (errorUtil.ERRORS.SUCCESS.CODE === respData.errCode) {
+              respData.data.tokens.unshift({
+                code: 'BU',
+                issuer: '',
+                amount: respData.data.balance,
+                decimals: 8
+              })
+              respData.data.tokens.forEach(function (item) {})
+              that.tokenList = respData.data.tokens
+            } else {
+              that.tokenList = []
+              this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
+            }
+          }).catch(e => {
+            that.tokenList = []
+            this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
+          })
         } else {
           that.tokenList = []
-          this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
           return
         }
       }).catch(e => {
         that.tokenList = []
-        this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
         return
       })
-      var reqData = {
-        address: that.sendAssetData.srcAddr
-      }
-      accountService.getAvailableBalanceAndTokenList(reqData).then((respData) => {
-        if (errorUtil.ERRORS.SUCCESS.CODE === respData.errCode) {
-          respData.data.tokens.unshift({
-            code: 'BU',
-            issuer: '',
-            amount: respData.data.balance,
-            decimals: 8
-          })
-          respData.data.tokens.forEach(function (item) {})
-          that.tokenList = respData.data.tokens
-        } else {
-          that.tokenList = []
-          // this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
-        }
-      }).catch(e => {
-        that.tokenList = []
-        this.$Message.error(this.$t('errorUtil.ERRORS.NETWORK_ERROR'))
-      })
+      
     },
     getAvailableAssetAmount () {
       var that = this
@@ -484,10 +488,6 @@ export default {
         this.$Message.error(this.$t('errorUtil.ERRORS.NOT_UNIT_ACCOUNT'))
         return
       }
-      if (!navigator.onLine) {
-        this.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
-        return
-      }
       if (this.blobBuildIng) {
         return
       }
@@ -495,34 +495,40 @@ export default {
       this.$refs.sendAssetData.validate((valid) => {
         if (valid) {
           that.showBuildTxDialog = true
-          var reqData = {
-            srcAddr: that.sendAssetData.srcAddr,
-            destAddr: that.sendAssetData.destAddr,
-            sentAssetAmount: that.sendAssetData.sentAssetAmount,
-            note: that.sendAssetData.note,
-            fee: that.sendAssetData.fee,
-            seqOffset: 0,
-            signersCount: this.signersCount,
-            currentTokenType: that.sendAssetData.currentTokenType,
-            currentTokenIssuer: that.currentTokenIssuer,
-            currentTokenDecimals: that.currentTokenDecimals
-          }
           that.blobBuildIng = true
-          txService.buildTxBlob(reqData).then(respData => {
+          baseService.testNetworkOnline().then(res => {
+            console.log('----------------------- Network OK! --------------------')
             that.blobBuildIng = false
-            if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
-              that.$Message.error({
-                content: that.$t(respData.msg),
-                duration: 3
-              })
-              return
-            } else {
-              that.sendAssetData.buildTxBlobStr = respData.data.blob
-              that.$emit('buildTxSucc', that.sendAssetData)
+            var reqData = {
+              srcAddr: that.sendAssetData.srcAddr,
+              destAddr: that.sendAssetData.destAddr,
+              sentAssetAmount: that.sendAssetData.sentAssetAmount,
+              note: that.sendAssetData.note,
+              fee: that.sendAssetData.fee,
+              seqOffset: 0,
+              signersCount: this.signersCount,
+              currentTokenType: that.sendAssetData.currentTokenType,
+              currentTokenIssuer: that.currentTokenIssuer,
+              currentTokenDecimals: that.currentTokenDecimals
             }
-          }).catch(data => {
+            txService.buildTxBlob(reqData).then(respData => {
+              if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
+                that.$Message.error({
+                  content: that.$t(respData.msg),
+                  duration: 3
+                })
+                return
+              } else {
+                that.sendAssetData.buildTxBlobStr = respData.data.blob
+                that.$emit('buildTxSucc', that.sendAssetData)
+              }
+            }).catch(data => {
+              console.log('err data:', data)
+            })
+          }).catch(error => {
+            console.log('----------------------- Network ERROR! --------------------')
             that.blobBuildIng = false
-            console.log('err data:', data)
+            that.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
           })
         }
       })

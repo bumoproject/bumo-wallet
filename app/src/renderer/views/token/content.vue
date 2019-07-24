@@ -14,8 +14,8 @@
         <b class="banlace">
           <div style="min-height: 32px;" v-if="!blockStatus">
             <span v-if="!loadingBalance">
-              <span>{{asset.intPart | commafy}}</span>
-              <span :class="{'balance-point-part': asset.intPart !== '0'}">{{asset.pointPart ? '.' + asset.pointPart: ''}}</span>
+              <span>{{asset.intPart}}</span>
+              <span v-if='asset.pointPart' class="balance-point-part">{{asset.pointPart ? '.' + asset.pointPart: ''}}</span>
               <span> {{currentToken}}</span>
             </span>
             <span v-else class="loading-balance">
@@ -53,13 +53,13 @@
             <div class="table-body-box">
               <dl class="table-body clearfix" v-for="(item, index) in txs" :key="index" @click="showTxDetailDialog(item)">
                 <dd class="status tx-status-success index-content-tx-list">
-                  <p class="tx-status" v-if="item.status.code === 0">
+                  <p class="tx-status" v-if="item.status.code === 0" @click.stop="handleCatchBubble">
                     <Tooltip :popper-class="'tx-status-tooltip'" :content="item.errMsg" :placement="index === 0 ? 'bottom-start' : 'top-start'"><i class="iconfont icon-chenggong1"></i></Tooltip>
                   </p>
-                  <p class="tx-status" v-else-if="item.status.code === -1">
+                  <p class="tx-status" v-else-if="item.status.code === -1" @click.stop="handleCatchBubble">
                     <Tooltip :popper-class="'tx-status-tooltip'" :content="item.errMsg" :placement="index === 0 ? 'bottom-start' : 'top-start'"><i class="iconfont icon-jinhangzhong"></i></Tooltip>
                   </p>
-                  <p class="tx-status" v-else>
+                  <p class="tx-status" v-else @click.stop="handleCatchBubble">
                     <Tooltip :popper-class="'tx-status-tooltip'" :content="item.errMsg" :placement="index === 0 ? 'bottom-start' : 'top-start'"><i class="iconfont icon-shibai1"></i></Tooltip>
                   </p>
                 </dd>
@@ -178,6 +178,7 @@ export default {
     }
   },
   methods: {
+    handleCatchBubble () {},
     goSend () {
       var that = this
       this.$store.commit('ACTIVE_HEADER_NAV', 'tx')
@@ -237,9 +238,10 @@ export default {
         // console.log(respData)
         if (errorUtil.ERRORS.SUCCESS.CODE === respData.errCode && respData.data.assetCode === that.currentToken) {
           that.loadingBalance = false
-          that.asset.balance = respData.data.tokenBalance
-          that.asset.intPart = that.asset.balance.split('.')[0]
-          that.asset.pointPart = that.asset.balance.split('.')[1]
+          that.asset.balance = respData.data.tokenBalance + ''
+          that.asset.intPart = that.asset.balance.split('.')[0] || that.asset.balance
+          that.asset.pointPart = that.asset.balance.split('.')[1] || ''
+          // console.log('resp-balance: ' + that.asset.balance)
         }
       })
     },
@@ -305,7 +307,7 @@ position: relative;
 .asset-panel p{color: #999999;font-size: 12px;padding-bottom: 6px;}
 .asset-panel p i{padding-left: 5px;font-size: 13px;}
 .asset-panel b.banlace{font-size: 28px;font-weight: normal;display: block;position:relative;}
-.asset-panel .balance-point-part {font-size: 18px;}
+.asset-panel .balance-point-part {font-size: 28px; margin-left: -7px;}
 .asset-panel .no-get-banlace{font-size: 16px;font-weight: 400;line-height: 24px;color: #999; display: block;}
 .asset-panel b{font-size: 16px;}
 .asset-panel .asset-icon{position: absolute;right: 20px;top: 0;font-size: 60px;color: #EFEFEF;}

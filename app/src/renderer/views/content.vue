@@ -15,9 +15,9 @@
           <b class="banlace">
             <!-- :class="{'balance-point-part': ((asset.intPart === '0') && (asset.pointPart === undefined))}" -->
             <div style="min-height: 32px;" v-if="!blockStatus">
-              <span v-if="asset.pointPart !== ''">
-                <span>{{asset.pointPart ? asset.intPart : asset.intPart}}</span>
-                <span :class="{'balance-point-part': asset.intPart !== '0'}">{{asset.pointPart ? '.' + asset.pointPart: ''}}</span>
+              <span v-if="asset.intPart !== ''">
+                <span>{{asset.intPart}}</span>
+                <span v-if='asset.pointPart' class="balance-point-part">{{asset.pointPart ? '.' + asset.pointPart : ''}}</span>
                 <span> BU</span>
               </span>
               <span v-else class="loading-balance">
@@ -57,13 +57,13 @@
               <div class="table-body-box">
                 <dl class="table-body clearfix" v-for="(item, index) in txs" :key="index" @click="showTxDetailDialog(item)">
                   <dd class="status tx-status-success index-content-tx-list">
-                    <p class="tx-status" v-if="item.status.code === 0">
+                    <p class="tx-status" v-if="item.status.code === 0" @click.stop="handleCatchBubble">
                       <Tooltip :content="item.errMsg" placement="top-start"><i class="iconfont icon-chenggong1"></i></Tooltip>
                     </p>
-                    <p class="tx-status" v-else-if="item.status.code === -1">
+                    <p class="tx-status" v-else-if="item.status.code === -1" @click.stop="handleCatchBubble">
                       <Tooltip :content="item.errMsg" placement="top-start"><i class="iconfont icon-jinhangzhong"></i></Tooltip>
                     </p>
-                    <p class="tx-status" v-else>
+                    <p class="tx-status" v-else @click.stop="handleCatchBubble">
                       <Tooltip :content="item.errMsg" placement="top-start"><i class="iconfont icon-shibai1"></i></Tooltip>
                     </p>
                   </dd>
@@ -173,6 +173,7 @@ export default {
     }
   },
   methods: {
+    handleCatchBubble () {},
     handleBlockError (blockErrorCode) {
       var respStatus = {
         errorCode: 0,
@@ -219,11 +220,13 @@ export default {
         if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
           return
         }
-        that.asset.balance = respData.data.tokenBalance
-        that.asset.intPart = that.asset.balance.split('.')[0]
-        that.asset.pointPart = that.asset.balance.split('.')[1]
+        // console.log(respData)
+        that.asset.balance = respData.data.tokenBalance + ''
+        that.asset.intPart = that.asset.balance.split('.')[0] || that.asset.balance
+        that.asset.pointPart = that.asset.balance.split('.')[1] ? that.asset.balance.split('.')[1] : ''
         that.asset.tokenReserve = respData.data.tokenReserve
         that.asset.txs = respData.data.txs
+        // console.log(respData.data)
       })
     },
     loadTxData () {
@@ -280,7 +283,7 @@ export default {
 .asset-panel p{color: #999999;font-size: 12px;padding-bottom: 6px;}
 .asset-panel p i{padding-left: 5px;font-size: 13px;}
 .asset-panel b.banlace{font-size: 28px;font-weight: normal;display: block;position:relative;}
-.asset-panel .balance-point-part {font-size: 18px;}
+.asset-panel .balance-point-part {font-size: 28px;}
 .asset-panel .no-get-banlace{font-size: 16px;font-weight: 400;line-height: 24px;color: #999; display: block;}
 .asset-panel b{font-size: 16px;}
 .asset-panel .asset-icon{position: absolute;right: 20px;top: 0;font-size: 60px;color: #EFEFEF;}
@@ -404,4 +407,7 @@ export default {
 .ivu-page .ivu-page-simple{text-align: center;padding-top: 20px;}
 .ivu-page-simple .ivu-page-simple-pager{display: none;}
 .show-tx-detail-wraper span.tx-note{float: inherit;word-break: break-all;}
+.index-cont .asset-panel .balance-point-part{
+  margin-left: -7px;
+}
 </style>

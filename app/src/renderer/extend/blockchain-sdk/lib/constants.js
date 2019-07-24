@@ -162,8 +162,10 @@ export default {
       'CODE': 112,
       'MSG': 'Operation timed out'
     },
-
-
+    'ERR_TX_INSERT_QUEUE_FAIL': {
+      'CODE': 113,
+      'MSG': 'Fail to insert the TX into buffer'
+    },
     'ERR_UNKNOWN': {
       'CODE': 404,
       'MSG': 'unknown error occured'

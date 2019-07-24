@@ -747,6 +747,7 @@ export default {
       'NOT_NORMAL_ACCOUNT': '付款账户仅支持普通账户地址',
       'NOT_UNIT_ACCOUNT': '付款账户仅支持联名账户地址',
       'NET_OFFLINE': '网络不可用，请在联网情况下进行操作',
+      'INSERT_TX_TO_BUFFER_FAIL': '当前有交易正在处理中，请稍后再试',
       'NETWORK_ERROR': '网络错误'
     }
   },

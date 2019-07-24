@@ -65,6 +65,10 @@ export default {
     },
     getActiveHeaderNav () {
       return this.$store.state.activeHeaderNav
+    },
+    test () {
+      console.log('-----network type: ' + process.env.NETWORK_TYPE + ' :network type-----')
+      return process.env.NETWORK_TYPE
     }
   },
   data () {

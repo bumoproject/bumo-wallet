@@ -177,7 +177,7 @@ export default {
         'accountAddress': 'Account Address',
         'copyBtn': 'Copy',
         'copyTip': 'Double-click to copy Account Address',
-        'unsyncBlock': 'Blocks Syncing, Searching Balance Later'
+        'unsyncBlock': 'Blocks being synchronized, the balance is available later'
       },
       'txStatus': {
         'success': 'Transaction Done',
@@ -228,7 +228,7 @@ export default {
         'accountAddress': 'Account Address',
         'copyBtn': 'Copy',
         'copyTip': 'Double-click to copy Account Address',
-        'unsyncBlock': 'Blocks Syncing, Searching Balance Later'
+        'unsyncBlock': 'Blocks being synchronized, the balance is available later'
       },
       'txStatus': {
         'success': 'Transaction Done',
@@ -747,6 +747,7 @@ export default {
       'NOT_NORMAL_ACCOUNT': 'For Standard Account Address Only',
       'NOT_UNIT_ACCOUNT': 'For Joint-Account Address Only',
       'NET_OFFLINE': 'Network NOT Available, Please Reconnect',
+      'INSERT_TX_TO_BUFFER_FAIL': 'Transaction is being processed; please try again later',
       'NETWORK_ERROR': 'Network Error'
     }
   },

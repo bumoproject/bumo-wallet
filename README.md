@@ -25,6 +25,7 @@
 │   │   │   ├── router                  <=  Vue 路由相关
 │   │   │   ├── store                   <=  Vuex
 │   │   │   ├── views                   <=  视图层
+│   │   ├── config.js                   <= blockchain-sdk节点链接配置等
 │   ├── index.ejs                       <= 模板文件
 │   ├── package.json                    <=  相关依赖
 ├── build                               <=  打包桌面应用相关
@@ -62,6 +63,23 @@ npm run lint
 
 # run webpack in production
 npm run pack
+
+```
+
+### 打包说明--2019-02-26新增
+
+``` 
+# 开发环境-单节点-钱包
+npm run dev-Lite
+
+# 开发环境-全节点-钱包
+npm run dev
+
+# 生产环境打包-单节点
+npm run build:win32-Lite || npm run build:darwin-Lite
+
+# 生产环境打包-全节点
+npm run build:win32 || npm run build:darwin
 
 ```
 ---

@@ -67,6 +67,7 @@
     </div>
     <div class="ost-btn submit-tx-btn" 
          :class="{'submit-tx-btn-active': submitBtnActive}"
+         :loading="submitLoading"
          @click="handleSubmitTx">
          {{submitBtnText ? $t('unite.submitTx.signBtn') : $t('unite.submitTx.clearBtn')}}
     </div>
@@ -83,6 +84,7 @@
 
 <script>
   import txService from '../../controllers/txService'
+  import baseService from '../../controllers/baseService'
   import errorUtil from '../../constants'
   import tools from '../../utils/tools'
   export default {
@@ -96,6 +98,7 @@
         txBlob: '',
         noData: true,
         submitBtnActive: false,
+        submitLoading: false,
         submitBtnText: true,
         satus: 2,
         txInfo: null
@@ -161,37 +164,46 @@
         })
       },
       handleSubmitTx () {
-        if (this.submitBtnText) {
-          if (!navigator.onLine) {
-            this.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
+        var that = this
+        if (that.submitBtnText) {
+          if (!that.submitBtnActive) {
             return
           }
-          var reqData = {
-            txBlob: this.txBlob
-          }
-          this.loading = true
-          txService.submitTx(reqData).then(respData => {
-            if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
-              this.$Message.error(this.$t(respData.msg))
-              this.loading = false
-              this.submitBtnText = true
-              return
+          if (that.submitLoading) return
+          that.submitLoading = true
+          baseService.testNetworkOnline().then(res => {
+            console.log('----------------------- Network OK! --------------------')
+            that.submitLoading = false
+            var reqData = {
+              txBlob: that.txBlob
             }
-            this.loading = false
-            this.status = 2
-            this.showResultOfSubmitTxDialog = true
-            this.txHash = respData.data.hash
-            this.$Message.success(this.$t('msg.succ.acceptTx'))
-            this.$emit('txSucc')
-            this.submitBtnText = false
-          }).catch(data => {
-            console.log('err data:', data)
+            txService.submitTx(reqData).then(respData => {
+              if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
+                that.$Message.error(that.$t(respData.msg))
+                that.submitBtnText = true
+                return
+              }
+              that.status = 2
+              that.showResultOfSubmitTxDialog = true
+              that.txHash = respData.data.hash
+              that.$Message.success(that.$t('msg.succ.acceptTx'))
+              that.$emit('txSucc')
+              that.submitBtnText = false
+            }).catch(data => {
+              console.log('err data:', data)
+            })
+          }).catch(error => {
+            console.log('----------------------- Network ERROR! --------------------')
+            that.submitLoading = false
+            that.$Message.error(that.$t('errorUtil.ERRORS.NET_OFFLINE'))
           })
+          
         } else {
-          this.noData = true
-          this.txBlob = ''
-          this.submitBtnText = true
-          this.$emit('clearSubmitTx')
+          that.noData = true
+          that.txBlob = ''
+          that.submitBtnText = true
+          that.submitBtnActive = false
+          that.$emit('clearSubmitTx')
         }
       }
     },
