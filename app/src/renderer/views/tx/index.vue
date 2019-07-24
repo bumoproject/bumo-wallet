@@ -179,6 +179,7 @@ export default {
           { required: true, message: this.$t('error.inputDestAddr'), trigger: 'blur' },
           {
             validator: (rule, value, callback) => {
+              var that = this
               if (value === null) {
                 callback()
               }
@@ -211,6 +212,7 @@ export default {
                   callback()
                 }
               }).catch(data => {
+                that.$Message.error(that.$t('errorUtil.ERRORS.NET_OFFLINE'))
                 console.log('err data:', data)
               })
             },
@@ -388,23 +390,29 @@ export default {
       that.submited = true
       that.$refs[name].validate((valid) => {
         if (valid) {
-          let address = that.$store.state.recentLoginWalletAccount.address
-          txService.getNonce({
-            address
-          }).then(respData => {
-            console.log(respData)
-            if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
-              that.$Message.error({
-                content: that.$t(respData.msg),
-                duration: 3
-              })
-              return
-            } else {
-              that.nonce= respData.data.nonce
-              this.sendAssetConfirm = true
-            }
-          }).catch(data => {
-            console.log('err data:', data)
+          baseService.testNetworkOnline().then(res => {
+            console.log('----------------------- Network OK! --------------------')
+            let address = that.$store.state.recentLoginWalletAccount.address
+            txService.getNonce({
+              address
+            }).then(respData => {
+              console.log(respData)
+              if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
+                that.$Message.error({
+                  content: that.$t(respData.msg),
+                  duration: 3
+                })
+                return
+              } else {
+                that.nonce= respData.data.nonce
+                this.sendAssetConfirm = true
+              }
+            }).catch(data => {
+              console.log('err data:', data)
+            })
+          }).catch(err => {
+            this.$Message.error(this.$t('errorUtil.ERRORS.NET_OFFLINE'))
+            console.log('----------------------- Network ERROR! --------------------')
           })
         }
       })
@@ -518,7 +526,7 @@ export default {
       }
       accountService.getAccountTokenBalance(reqData).then(respData => {
         if (errorUtil.ERRORS.SUCCESS.CODE !== respData.errCode) {
-          that.$Message.error(that.$t(respData.msg))
+          // that.$Message.error(that.$t(respData.msg))
           return
         }
         if ((respData.data.tokenBalance - 0) > (config.reserveAccountBalance - 0)) {

@@ -148,6 +148,7 @@ export default {
         address: opts.walletAddress
       }
       bSdk.account.getAccountTokenBalance(reqWalletAccountTokenBalanceOpts).then(respGetAccountTokenBalanceData => {
+        console.log('respGetAccountTokenBalanceData', respGetAccountTokenBalanceData)
         if (errorUtil.ERRORS.SUCCESS.CODE === respGetAccountTokenBalanceData.errCode) {
           respData.data.tokenBalance = respGetAccountTokenBalanceData.data.amount
           respData.data.tokenReserve = respGetAccountTokenBalanceData.data.reserve
@@ -290,6 +291,8 @@ export default {
           respData.msg = 'errorUtil.ERRORS.RECOVER_ACCOUNT_ERROR'
         }
         resolve(respData)
+      }).catch((err) => {
+        reject(err)
       })
     })
   },
