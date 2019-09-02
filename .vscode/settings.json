@@ -1,0 +1,7 @@
+{
+  "vue-i18n-ally.localesPaths": [
+    "build/BumoWalletTest-win32-x64-Full-v1.3.2-20190724/locales",
+    "build/BumoWalletTest-win32-x64-Lite-v1.3.2-20190724/locales",
+    "app/src/renderer/assets/i18n"
+  ]
+}

@@ -9,10 +9,10 @@ const fullConnections = {
   'ws_port': '16003'
 }
 const liteConnections = {
-  'http_host': '52.80.12.8',
-  'http_port': '6002',
-  'ws_host': '52.80.12.8',
-  'ws_port': '6003'
+  'http_host': 'wallet-node.bumo.io',
+  'http_port': '80',
+  'ws_host': 'wallet-node-ws.bumo.io',
+  'ws_port': '80'
 }
 const testConnections = {
   'http_host': '127.0.0.1',
