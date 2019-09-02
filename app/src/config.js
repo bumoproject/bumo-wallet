@@ -11,7 +11,7 @@ const fullConnections = {
 const liteConnections = {
   'http_host': 'wallet-node.bumo.io',
   'http_port': '80',
-  'ws_host': 'wallet-node-ws.bumo.io',
+  'ws_host': 'wallet-node-ws.bumocdn.com',
   'ws_port': '80'
 }
 const testConnections = {
